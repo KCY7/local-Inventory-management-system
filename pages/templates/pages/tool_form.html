@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .form-container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        .form-title { text-align: center; margin-bottom: 30px; color: #2c3e50; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
+        .btn-submit { width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.3s; }
+        .btn-submit:hover { background: #219150; }
+        .btn-cancel { display: block; text-align: center; margin-top: 15px; color: #7f8c8d; text-decoration: none; font-size: 0.9rem; }
+
+        /* Dynamic Sections */
+        .dynamic-section { display: none; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 20px; }
+        .dynamic-section.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="form-container">
+        <h2 class="form-title">{{ title }}</h2>
+        
+        <form method="POST" id="mainForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label>Asset Category</label>
+                {{ form.category }} 
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>Quantity</label>
+                    {{ form.quantity }}
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    {{ form.status }}
+                </div>
+            </div>
+
+            <div class="form-group" id="manualNameGroup">
+                <label>Item Name</label>
+                {{ form.name }}
+            </div>
+
+            <div id="toolFields" class="dynamic-section">
+                <label style="color:#5D6D7E; margin-bottom:10px; display:block;"><i class="fas fa-tools"></i> Tool Details</label>
+                <div class="form-group">
+                    <label>Tool Sub-Category</label>
+                    <select id="toolType" class="form-control">
+                        <option value="General">General / Hand Tool</option>
+                        <option value="Network Tool">Network Tool (Crimper, Tester)</option>
+                        <option value="Precision">Precision (Tweezers, Small Drivers)</option>
+                        <option value="Power Tool">Power Tool (Soldering, Duster)</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Specific Name</label><input type="text" id="toolName" class="form-control" placeholder="e.g. Philips Screwdriver"></div>
+            </div>
+
+            <div id="consumableFields" class="dynamic-section">
+                <label style="color:#E67E22; margin-bottom:10px; display:block;"><i class="fas fa-box-open"></i> Supply Details</label>
+                <div class="form-group">
+                    <label>Supply Sub-Category</label>
+                    <select id="consumableType" class="form-control">
+                        <option value="General">General Supply</option>
+                        <option value="Network Supply">Network (RJ45, Boots)</option>
+                        <option value="Fastener">Fastener (Zip Ties, Screws)</option>
+                        <option value="Cleaning">Cleaning (Alcohol, Cloth)</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Specific Name</label><input type="text" id="consumableName" class="form-control" placeholder="e.g. RJ45 Connector"></div>
+            </div>
+
+            <div id="accFields" class="dynamic-section">
+                <label style="color:#8E44AD; margin-bottom:10px; display:block;"><i class="fas fa-keyboard"></i> Accessory Details</label>
+                <div class="form-group">
+                    <label>Accessory Sub-Category</label>
+                    <select id="accType" class="form-control">
+                        <option value="General">General Accessory</option>
+                        <option value="Cable">Cable / Wire (HDMI, VGA)</option>
+                        <option value="Peripheral">Peripheral (Mouse, Keyboard)</option>
+                        <option value="Power">Power (AVR, Ext. Cord, Charger)</option>
+                        <option value="Adapter">Adapter / Converter</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Specific Name</label><input type="text" id="accName" class="form-control" placeholder="e.g. HDMI Cable 5m"></div>
+            </div>
+
+            <div id="partFields" class="dynamic-section">
+                <label style="color:#c0392b; margin-bottom:10px; display:block;"><i class="fas fa-microchip"></i> Component Details</label>
+                
+                <div class="form-group">
+                    <label>Component Type</label>
+                    <select id="compType" class="form-control" onchange="updatePartForm()">
+                        <option value="">-- Select Type --</option>
+                        <option value="RAM">RAM (Memory)</option>
+                        <option value="HDD">HDD (Hard Drive)</option>
+                        <option value="SSD">SSD (Solid State)</option>
+                        <option value="GPU">GPU (Graphics Card)</option>
+                        <option value="Motherboard">Motherboard</option>
+                        <option value="Others">Others (PSU, Fans, Case)</option>
+                    </select>
+                </div>
+
+                <div id="ramSpecs" style="display:none;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <select id="ramSize" class="form-control">
+                            <option value="4GB">4GB</option>
+                            <option value="8GB">8GB</option>
+                            <option value="16GB">16GB</option>
+                        </select>
+                        <select id="ramDDR" class="form-control">
+                            <option value="DDR3">DDR3</option>
+                            <option value="DDR4">DDR4</option>
+                            <option value="DDR5">DDR5</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="storageSpecs" style="display:none;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <select id="storageSize" class="form-control">
+                            <option value="250GB">250GB</option>
+                            <option value="500GB">500GB</option>
+                            <option value="1TB">1TB</option>
+                            <option value="2TB">2TB</option>
+                        </select>
+                        <select id="storageType" class="form-control">
+                            <option value="SATA">SATA</option>
+                            <option value="NVMe">NVMe</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="otherSpecs" style="display:none;">
+                    <div class="form-group">
+                        <label>Specify Component</label>
+                        <input type="text" id="otherName" class="form-control" placeholder="e.g. 700W Power Supply">
+                    </div>
+                </div>
+            </div>
+
+            <div id="networkFields" class="dynamic-section">
+                <label style="color:#2980B9; margin-bottom:10px; display:block;"><i class="fas fa-network-wired"></i> Network Equipment</label>
+                <div class="form-group">
+                    <label>Equipment Type</label>
+                    <select id="netType" class="form-control">
+                        <option value="General">General Network</option>
+                        <option value="Router">Router (Wireless/Wired)</option>
+                        <option value="Switch">Switch (8/16/24 Port)</option>
+                        <option value="Access Point">Access Point (AP)</option>
+                        <option value="Infrastructure">Infrastructure (Patch Panel, Cabinet)</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Specific Name</label><input type="text" id="netName" class="form-control" placeholder="e.g. 8-Port Gigabit Switch"></div>
+            </div>
+
+            <button type="button" class="btn-submit" onclick="compileAndSubmit()">Save Asset</button>
+            <a href="{% url 'manage_tools' %}" class="btn-cancel">Cancel</a>
+        </form>
+    </div>
+
+    <script>
+        // Init classes
+        document.querySelector('#id_category').classList.add('form-control');
+        document.querySelector('#id_name').classList.add('form-control');
+        document.querySelector('#id_quantity').classList.add('form-control');
+        document.querySelector('#id_status').classList.add('form-control');
+
+        // --- MAIN TOGGLE FUNCTION ---
+        function checkCategory() {
+            var cat = document.querySelector('#id_category').value;
+            
+            // Get all sections
+            var partSection = document.getElementById('partFields');
+            var toolSection = document.getElementById('toolFields');
+            var conSection = document.getElementById('consumableFields');
+            var accSection = document.getElementById('accFields');
+            var netSection = document.getElementById('networkFields');
+            var nameGroup = document.getElementById('manualNameGroup');
+
+            // Reset all
+            partSection.classList.remove('active');
+            toolSection.classList.remove('active');
+            conSection.classList.remove('active');
+            accSection.classList.remove('active');
+            netSection.classList.remove('active');
+            nameGroup.style.display = 'block'; // Default
+
+            // Logic
+            if (cat === 'Computer Part') {
+                partSection.classList.add('active');
+                nameGroup.style.display = 'none';
+            } 
+            else if (cat === 'Hand Tool') {
+                toolSection.classList.add('active');
+                nameGroup.style.display = 'none';
+            }
+            else if (cat === 'Consumable') {
+                conSection.classList.add('active');
+                nameGroup.style.display = 'none';
+            }
+            else if (cat === 'Accessory') {
+                accSection.classList.add('active');
+                nameGroup.style.display = 'none';
+            }
+            else if (cat === 'Network') { // Match the value from models.py
+                netSection.classList.add('active');
+                nameGroup.style.display = 'none';
+            }
+        }
+
+        // 1. EVENT LISTENERS
+        document.querySelector('#id_category').addEventListener('change', checkCategory);
+        
+        // **FIX:** Trigger immediately on page load to handle default selection
+        window.addEventListener('load', checkCategory);
+
+        // 2. WATCH PART TYPE CHANGE (FOR COMPUTER PARTS)
+        function updatePartForm() {
+            var type = document.getElementById('compType').value;
+            document.getElementById('ramSpecs').style.display = (type === 'RAM') ? 'block' : 'none';
+            document.getElementById('storageSpecs').style.display = (type === 'HDD' || type === 'SSD') ? 'block' : 'none';
+            document.getElementById('otherSpecs').style.display = (type === 'Others' || type === 'GPU' || type === 'Motherboard') ? 'block' : 'none';
+            
+            var otherInput = document.getElementById('otherName');
+            if(type === 'GPU') otherInput.placeholder = "e.g. GTX 1050 Ti";
+            if(type === 'Motherboard') otherInput.placeholder = "e.g. Asus H410M";
+            if(type === 'Others') otherInput.placeholder = "e.g. 700W Generic PSU";
+        }
+
+        // 3. COMPILE DATA ON SUBMIT
+        function compileAndSubmit() {
+            var cat = document.querySelector('#id_category').value;
+            var nameField = document.querySelector('#id_name');
+            
+            if (cat === 'Computer Part') {
+                var type = document.getElementById('compType').value;
+                if (type === 'RAM') {
+                    nameField.value = document.getElementById('ramSize').value + " " + document.getElementById('ramDDR').value + " RAM"; 
+                } 
+                else if (type === 'HDD' || type === 'SSD') {
+                    nameField.value = document.getElementById('storageSize').value + " " + type + " (" + document.getElementById('storageType').value + ")"; 
+                }
+                else {
+                    var manual = document.getElementById('otherName').value;
+                    if(type === 'Others') nameField.value = manual; 
+                    else nameField.value = type + ": " + manual;
+                }
+            }
+            
+            else if (cat === 'Hand Tool') {
+                var sub = document.getElementById('toolType').value;
+                var name = document.getElementById('toolName').value;
+                nameField.value = (sub === 'General') ? name : sub + " - " + name;
+            }
+
+            else if (cat === 'Consumable') {
+                var sub = document.getElementById('consumableType').value;
+                var name = document.getElementById('consumableName').value;
+                nameField.value = (sub === 'General') ? name : sub + " - " + name;
+            }
+
+            else if (cat === 'Accessory') {
+                var sub = document.getElementById('accType').value;
+                var name = document.getElementById('accName').value;
+                nameField.value = (sub === 'General') ? name : sub + " - " + name;
+            }
+
+            else if (cat === 'Network') {
+                var sub = document.getElementById('netType').value;
+                var name = document.getElementById('netName').value;
+                nameField.value = (sub === 'General') ? name : sub + " - " + name;
+            }
+
+            // Submit
+            document.getElementById('mainForm').submit();
+        }
+    </script>
+
+</body>
+</html>

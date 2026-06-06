@@ -1,0 +1,911 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Assets | Inventory System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* BASE LAYOUT */
+        body { font-family: 'Poppins', sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; color: #333; display: flex; height: 100vh; overflow: hidden; }
+
+        /* SIDEBAR - STANDARDIZED */
+        .sidebar { width: 260px; background-color: #2c3e50; color: white; display: flex; flex-direction: column; box-shadow: 4px 0 15px rgba(0,0,0,0.05); flex-shrink: 0; z-index: 100; }
+        .sidebar-header { padding: 25px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; }
+        .sidebar-header img { width: 70px; height: auto; margin: 0 0 10px 0; border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.2); display: block; }
+        .sidebar-header h2 { font-size: 0.85rem; margin: 0; padding: 0; letter-spacing: 1px; line-height: 1.5; font-weight: 600; opacity: 0.9; }
+
+        .sidebar-menu { flex-grow: 1; padding: 20px 0; overflow-y: auto; }
+        .menu-item { padding: 15px 25px; display: flex; align-items: center; gap: 12px; color: rgba(255,255,255,0.7); text-decoration: none; transition: all 0.2s ease-in-out; font-size: 0.9rem; border-left: 4px solid transparent; }
+        .menu-item:hover, .menu-item.active { background-color: rgba(255,255,255,0.05); color: white; border-left-color: #ff5757; }
+        .menu-item i { width: 20px; text-align: center; }
+        .sidebar-footer { padding: 20px; background-color: rgba(0,0,0,0.15); border-top: 1px solid rgba(255,255,255,0.05); }
+        .logout-btn { background-color: #ff5757; color: white; padding: 12px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; font-weight: 600; box-shadow: 0 4px 10px rgba(255, 87, 87, 0.3); }
+        .logout-btn:hover { background-color: #e04a4a; transform: translateY(-1px); }
+
+        /* MAIN CONTENT */
+        .main-content { flex-grow: 1; overflow-y: auto; padding: 40px; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); min-height: 500px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        
+        .filter-bar { display: flex; gap: 10px; align-items: center; flex-grow: 1; margin-left: 20px; max-width: 600px; }
+        .search-input { padding: 10px 15px; border-radius: 6px; border: 1px solid #ddd; flex-grow: 1; font-family: inherit; font-size: 0.9rem; }
+        .search-input:focus { outline: none; border-color: #ff5757; }
+        .cat-filter { padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-family: inherit; font-size: 0.9rem; background: white; cursor: pointer; }
+        .cat-filter:focus { outline: none; border-color: #ff5757; }
+
+        .btn-action { padding: 10px 20px; border-radius: 6px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; transition: transform 0.2s, box-shadow 0.2s; border: none; cursor: pointer; color: white; }
+        .btn-red-theme { background-color: #ff5757; }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(255, 87, 87, 0.3); color: white; }
+
+        .tabs-wrapper { display: flex; gap: 10px; border-bottom: 2px solid #eee; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+        .tab-btn { padding: 10px 20px; background: #f8f9fa; border: 1px solid #eee; border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer; font-weight: 600; color: #7f8c8d; transition: all 0.2s; white-space: nowrap; }
+        .tab-btn:hover { background: #fff5f5; color: #ff5757; }
+        .tab-btn.active { background: #ff5757; color: white; border-color: #ff5757; }
+
+        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; padding: 15px; background: #f8f9fa; border-bottom: 2px solid #eee; color: #2c3e50; font-weight: 600; }
+        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 0.95rem; vertical-align: top; }
+        
+        .btn-action-group { display: flex; gap: 5px; }
+        .btn-icon { display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: background 0.2s; color: white; height: 34px; }
+        .btn-edit-style { background-color: #ff5757; padding: 0 14px; font-weight: 500; gap: 6px; }
+        .btn-edit-style:hover { background-color: #e04a4a; }
+        .btn-delete-style { background-color: white; color: #ff5757; border: 1px solid #ff5757; width: 34px; }
+        .btn-delete-style:hover { background-color: #fff5f5; color: #c0392b; }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
+        .modal-card { background: white; width: 95%; max-width: 500px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out; scrollbar-width: none;}
+        .modal-card::-webkit-scrollbar { display: none; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-header-custom { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-title { font-size: 1.2rem; font-weight: 600; color: #2c3e50; margin: 0; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; color: #aaa; cursor: pointer; transition: color 0.2s; }
+        .close-btn:hover { color: #ff5757; }
+        
+        label { font-size: 0.85rem; font-weight: 600; color: #555; margin-bottom: 5px; display: block; }
+        .form-control, .form-select { width: 100%; box-sizing: border-box; border-radius: 6px; padding: 10px; border: 1px solid #ddd; margin-bottom: 15px; font-family: inherit; }
+        .form-control:focus, .form-select:focus { outline: none; border-color: #ff5757; box-shadow: 0 0 0 3px rgba(255, 87, 87, 0.1); }
+        
+        .btn-save-modal { background: #ff5757; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: 600; margin-top: 10px; cursor: pointer; transition: background 0.2s; }
+        .btn-save-modal:hover { background: #e04a4a; }
+        
+        .btn-delete-confirm { background: #c0392b; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; text-decoration: none; display: inline-block; transition: background 0.2s; }
+        .btn-delete-confirm:hover { background: #a93226; color: white; }
+        .btn-cancel { background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .btn-cancel:hover { background: #7f8c8d; }
+        .hidden-field { display: none; }
+
+        /* S/N ACCORDION STYLES */
+        .sn-accordion-summary { font-size: 0.8rem; color: #3b82f6; font-weight: 600; outline: none; list-style: none; display: flex; align-items: center; gap: 5px; cursor: pointer; transition: 0.2s; user-select: none;}
+        .sn-accordion-summary:hover { color: #2563eb; }
+        .sn-accordion-summary::-webkit-details-marker { display: none; }
+        .sn-list-item { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 6px 10px; margin-bottom: 4px; border-radius: 4px; border: 1px solid #e2e8f0; font-size: 0.85rem;}
+        
+        .pc-dropdown-card { background: white; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; overflow: hidden; transition: all 0.2s; }
+        .pc-dropdown-card[open] { box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-color: #ff5757; }
+        .pc-card-header { padding: 15px 20px; background: #f8f9fa; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: #2c3e50; user-select: none; }
+        .pc-card-header:hover { background: #fff5f5; color: #ff5757; }
+        .pc-dropdown-card[open] .pc-card-header { background: #ff5757; color: white; }
+        
+        .pc-card-body { padding: 0 15px 15px 15px; border-top: 1px solid #eee; background: #fafafa; }
+        .pc-inner-table th { background: transparent; border-bottom: 1px solid #ddd; padding: 10px; font-size: 0.85rem; color: #7f8c8d; }
+        .pc-inner-table td { padding: 10px; font-size: 0.9rem; border-bottom: 1px solid #eee; }
+        .pc-inner-table tr:last-child td { border-bottom: none; }
+        .pc-dropdown-card details > summary::-webkit-details-marker { display: none; }
+        .section-title { font-size: 1.1rem; color: #555; margin-top: 25px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-weight: 600; border-bottom: 2px solid #eee; padding-bottom: 8px;}
+    
+    /* --- TOAST NOTIFICATIONS --- */
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { background: white; border-left: 5px solid #ff5757; box-shadow: 0 5px 15px rgba(0,0,0,0.15); padding: 15px 20px; border-radius: 8px; font-size: 0.9rem; color: #2c3e50; font-weight: 500; display: flex; align-items: center; gap: 12px; animation: slideInRight 0.3s ease-out forwards, fadeOut 0.5s ease-out 4.5s forwards; }
+        .toast-error { border-left-color: #c0392b; }
+        .toast-error i { color: #c0392b; font-size: 1.2rem; }
+        .toast-success { border-left-color: #27ae60; }
+        .toast-success i { color: #27ae60; font-size: 1.2rem; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+    </style>
+
+</head>
+<body>
+{% if messages %}
+        <div class="toast-container" id="toast-container">
+            {% for message in messages %}
+                <div class="toast {% if message.tags %}toast-{{ message.tags }}{% endif %}">
+                    {% if message.tags == 'error' %}<i class="fas fa-exclamation-circle"></i>
+                    {% else %}<i class="fas fa-check-circle"></i>{% endif %}
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+        <script>
+            // Clean up the DOM after the animation finishes
+            setTimeout(() => {
+                const toastBox = document.getElementById('toast-container');
+                if(toastBox) toastBox.remove();
+            }, 5000);
+        </script>
+    {% endif %}
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="{% static 'images/holychild.png' %}" alt="HCC Logo">
+            <h2>HOLY CHILD COLLEGE OF DAVAO DEL NORTE<br>INVENTORY SYSTEM</h2>
+        </div>
+        <nav class="sidebar-menu">
+            <a href="{% url 'dashboard' %}" class="menu-item"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="{% url 'manage_laptops' %}" class="menu-item"><i class="fas fa-laptop"></i> Laptop Dashboard</a>
+            <a href="{% url 'manage_office_supplies' %}" class="menu-item"><i class="fas fa-paperclip"></i> Office Supplies</a>
+            <a href="{% url 'manage_tools' %}" class="menu-item active"><i class="fas fa-tools"></i> Manage Assets</a>
+            <a href="{% url 'master_list' %}" class="menu-item"><i class="fas fa-database"></i> Full Database</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="{% url 'logout' %}" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="header">
+                <div style="flex-shrink: 0;">
+                    <h1 style="margin:0; font-size: 1.8rem; color: #2c3e50;">Manage Assets</h1>
+                    <p style="margin:5px 0 0; color:#7f8c8d;">Tools, Parts & Accessories</p>
+                </div>
+
+                <div class="filter-bar">
+                    <select id="categoryFilter" class="cat-filter" onchange="filterTable()">
+                        <option value="All">All Categories</option>
+                        <option value="Animation">Animation</option>
+                        <option value="Computer Part">Computer Part</option>
+                        <option value="Hand Tool">Hand Tool</option>
+                        <option value="Accessory">Accessory</option>
+                        <option value="Network">Network</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search by name or S/N..." onkeyup="filterTable()">
+                </div>
+
+                <button onclick="openAddModal()" class="btn-action btn-red-theme">
+                    <i class="fas fa-plus"></i> Add New Asset
+                </button>
+            </div>
+
+            <div class="tabs-wrapper">
+                <button class="tab-btn active" id="btn-tab-unassigned" onclick="openTab('tab-unassigned', this)">
+                    <i class="fas fa-box-open"></i> General Storage & Loose Parts
+                </button>
+                <button class="tab-btn" id="btn-tab-defective" onclick="openTab('tab-defective', this)" style="color: #c0392b;">
+                    <i class="fas fa-heart-broken"></i> Defective Parts
+                </button>
+                {% for room in rooms %}
+                <button class="tab-btn" id="btn-tab-{{ room.id }}" onclick="openTab('tab-{{ room.id }}', this)">
+                    <i class="fas fa-door-open"></i> {{ room.name }}
+                </button>
+                {% endfor %}
+            </div>
+
+            <div id="tab-unassigned" class="tab-content active">
+                <h3 style="margin-top:0; color:#2c3e50;">General Storage</h3>
+                <div class="section-title"><i class="fas fa-microchip"></i> General Storage & Loose Parts</div>
+                <table class="searchable-table" style="margin-bottom: 30px;">
+                    <thead><tr><th width="20%">Category</th><th>Name & Details</th><th width="10%">Total Qty</th><th width="15%">Actions</th></tr></thead>
+                    <tbody>
+                        {% for group in unassigned_tools %}
+                            <tr class="item-row" data-category="{{ group.category }}" data-name="{{ group.name|lower }} {% for i in group.items %}{{ i.serial_number|default_if_none:''|lower }} {% endfor %}">
+                                <td>
+                                    {% if group.category == 'Animation' %}<i class="fas fa-pen-nib" style="color:#e91e63; margin-right: 8px;"></i>
+                                    {% elif group.category == 'Computer Part' %}<i class="fas fa-microchip" style="color:#ff5757; margin-right: 8px;"></i>
+                                    {% elif group.category == 'Hand Tool' %}<i class="fas fa-tools" style="color:#5d6d7e; margin-right: 8px;"></i>
+                                    {% elif group.category == 'Accessory' %}<i class="fas fa-keyboard" style="color:#8e44ad; margin-right: 8px;"></i>
+                                    {% elif group.category == 'Network' %}<i class="fas fa-network-wired" style="color:#2980b9; margin-right: 8px;"></i>
+                                    {% else %}<i class="fas fa-cube" style="margin-right: 8px;"></i>{% endif %}
+                                    {{ group.category }}
+                                </td>
+                                <td>
+                                    <strong style="font-size:1.05rem;">{{ group.name }}</strong>
+                                    {% if group.items|length == 1 and not group.items.0.serial_number %}
+                                        <br><small style="color: #95a5a6;"><i class="fas fa-barcode"></i> S/N: N/A</small>
+                                    {% else %}
+                                        <details style="margin-top: 8px;">
+                                            <summary class="sn-accordion-summary">
+                                                <i class="fas fa-layer-group"></i> View {{ group.items|length }} Item(s) & S/N <i class="fas fa-chevron-down" style="font-size: 0.7rem; opacity: 0.7; margin-left:3px;"></i>
+                                            </summary>
+                                            <div style="margin-top: 8px; border-left: 2px solid #3b82f6; padding-left: 10px; display: flex; flex-direction: column; gap: 5px;">
+                                                {% for item in group.items %}
+                                                    <div class="sn-list-item">
+                                                        <span style="color: #475569;">
+                                                            <i class="fas fa-barcode" style="color: #94a3b8; margin-right: 4px;"></i> {{ item.serial_number|default:"N/A" }}
+                                                            {% if item.quantity > 1 %}<span style="color:#94a3b8; font-size: 0.7rem; margin-left: 4px;">(Qty: {{ item.quantity }})</span>{% endif %}
+                                                        </span>
+                                                        <div style="display: flex; gap: 8px;">
+                                                            <button class="btn-icon" style="color:#ff5757; background:none; padding:0; cursor:pointer;" title="Edit" 
+                                                                data-id="{{ item.id }}" data-name="{{ item.name }}" data-category="{{ item.category }}" data-quantity="{{ item.quantity }}" data-room="{% if item.room %}{{ item.room.id }}{% endif %}" data-sn="{{ item.serial_number|default_if_none:'' }}" onclick="openEditModal(this)">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                            <button class="btn-icon" style="color:#c0392b; background:none; padding:0; cursor:pointer;" title="Delete" onclick="openDeleteModal('{{ item.id }}', '{{ item.name|escapejs }}')">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </details>
+                                    {% endif %}
+                                </td>
+                                <td style="font-weight: bold; font-size: 1.2rem; color: #ff5757;">{{ group.total_qty }}</td>
+                                <td>
+                                    {% if group.items|length == 1 and not group.items.0.serial_number %}
+                                        <div class="btn-action-group">
+                                            <button class="btn-icon btn-edit-style"
+                                                data-id="{{ group.items.0.id }}" data-name="{{ group.items.0.name }}" data-category="{{ group.items.0.category }}"
+                                                data-quantity="{{ group.items.0.quantity }}" data-room="" data-sn="" onclick="openEditModal(this)">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <button class="btn-icon btn-delete-style" onclick="openDeleteModal('{{ group.items.0.id }}', '{{ group.items.0.name|escapejs }}')">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    {% else %}
+                                        <span style="font-size: 0.75rem; color: #94a3b8; font-style: italic;"><i class="fas fa-level-down-alt fa-rotate-90" style="margin-right:5px;"></i>Expand list to edit</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="4" style="text-align:center; padding:30px; color: #999;">No loose parts available in General Storage.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="tab-defective" class="tab-content">
+                <h3 style="margin-top:0; color:#c0392b;"><i class="fas fa-exclamation-triangle"></i> Defective Components & Assets</h3>
+                <p style="color:#7f8c8d; font-size:0.9rem;">These parts were marked as defective during PC updates.</p>
+                
+                <table class="searchable-table" style="margin-bottom: 30px; border-left: 3px solid #c0392b;">
+                    <thead><tr><th width="20%">Category</th><th>Name & Details</th><th width="10%">Total Qty</th><th width="15%">Actions</th></tr></thead>
+                    <tbody>
+                        {% for group in defective_tools %}
+                            <tr class="item-row" data-category="{{ group.category }}" data-name="{{ group.name|lower }} {% for i in group.items %}{{ i.serial_number|default_if_none:''|lower }} {% endfor %}">
+                                <td>
+                                    {% if group.category == 'Animation' %}<i class="fas fa-pen-nib" style="color:#e91e63; margin-right: 8px;"></i>
+                                    {% elif group.category == 'Computer Part' %}<i class="fas fa-microchip" style="color:#ff5757; margin-right: 8px;"></i>
+                                    {% elif group.category == 'Hand Tool' %}<i class="fas fa-tools" style="color:#5d6d7e; margin-right: 8px;"></i>
+                                    {% elif group.category == 'Accessory' %}<i class="fas fa-keyboard" style="color:#8e44ad; margin-right: 8px;"></i>
+                                    {% elif group.category == 'Network' %}<i class="fas fa-network-wired" style="color:#2980b9; margin-right: 8px;"></i>
+                                    {% else %}<i class="fas fa-cube" style="margin-right: 8px;"></i>{% endif %}
+                                    {{ group.category }}
+                                </td>
+                                <td>
+                                    <strong style="font-size:1.05rem;">{{ group.name }}</strong>
+                                    <span class="badge-status" style="background:#ffebeb; color:#c0392b; padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:8px; vertical-align:middle;">Defective</span>
+                                    
+                                    {% if group.items|length == 1 and not group.items.0.serial_number %}
+                                        <br><small style="color: #95a5a6;"><i class="fas fa-barcode"></i> S/N: N/A</small>
+                                    {% else %}
+                                        <details style="margin-top: 8px;">
+                                            <summary class="sn-accordion-summary">
+                                                <i class="fas fa-layer-group"></i> View {{ group.items|length }} Item(s) & S/N <i class="fas fa-chevron-down" style="font-size: 0.7rem; opacity: 0.7; margin-left:3px;"></i>
+                                            </summary>
+                                            <div style="margin-top: 8px; border-left: 2px solid #c0392b; padding-left: 10px; display: flex; flex-direction: column; gap: 5px;">
+                                                {% for item in group.items %}
+                                                    <div class="sn-list-item">
+                                                        <span style="color: #475569;">
+                                                            <i class="fas fa-barcode" style="color: #94a3b8; margin-right: 4px;"></i> {{ item.serial_number|default:"N/A" }}
+                                                            {% if item.quantity > 1 %}<span style="color:#94a3b8; font-size: 0.7rem; margin-left: 4px;">(Qty: {{ item.quantity }})</span>{% endif %}
+                                                        </span>
+                                                        <div style="display: flex; gap: 8px;">
+                                                            <button class="btn-icon" style="color:#ff5757; background:none; padding:0; cursor:pointer;" title="Edit" 
+                                                                data-id="{{ item.id }}" data-name="{{ item.name }}" data-category="{{ item.category }}" data-quantity="{{ item.quantity }}" data-room="{% if item.room %}{{ item.room.id }}{% endif %}" data-sn="{{ item.serial_number|default_if_none:'' }}" onclick="openEditModal(this)">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                            <button class="btn-icon" style="color:#c0392b; background:none; padding:0; cursor:pointer;" title="Delete" onclick="openDeleteModal('{{ item.id }}', '{{ item.name|escapejs }}')">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </details>
+                                    {% endif %}
+                                </td>
+                                <td style="font-weight: bold; font-size: 1.2rem; color: #c0392b;">{{ group.total_qty }}</td>
+                                <td>
+                                    {% if group.items|length == 1 and not group.items.0.serial_number %}
+                                        <div class="btn-action-group">
+                                            <button class="btn-icon btn-edit-style"
+                                                data-id="{{ group.items.0.id }}" data-name="{{ group.items.0.name }}" data-category="{{ group.items.0.category }}"
+                                                data-quantity="{{ group.items.0.quantity }}" data-room="" data-sn="" onclick="openEditModal(this)">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <button class="btn-icon btn-delete-style" onclick="openDeleteModal('{{ group.items.0.id }}', '{{ group.items.0.name|escapejs }}')">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    {% else %}
+                                        <span style="font-size: 0.75rem; color: #94a3b8; font-style: italic;"><i class="fas fa-level-down-alt fa-rotate-90" style="margin-right:5px;"></i>Expand list to edit</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="4" style="text-align:center; padding:30px; color: #999;">No defective parts on record. Great job!</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% for room in rooms %}
+            <div id="tab-{{ room.id }}" class="tab-content">
+                <h3 style="margin-top:0; color:#2c3e50;">Inventory for {{ room.name }}</h3>
+
+                <div class="section-title"><i class="fas fa-toolbox"></i> Room Tools & Accessories</div>
+                <table class="searchable-table" style="margin-bottom: 30px;">
+                    <thead><tr><th width="20%">Category</th><th>Name & Details</th><th width="10%">Total Qty</th><th width="15%">Actions</th></tr></thead>
+                    <tbody>
+                        {% for group in room.grouped_tools %}
+                            <tr class="item-row" data-category="{{ group.category }}" data-name="{{ group.name|lower }} {% for i in group.items %}{{ i.serial_number|default_if_none:''|lower }} {% endfor %}">
+                                <td>
+                                    {% if group.category == 'Animation' %}<i class="fas fa-pen-nib" style="color:#e91e63; margin-right: 8px;"></i>
+                                    {% elif group.category == 'Computer Part' %}<i class="fas fa-microchip" style="color:#ff5757; margin-right: 8px;"></i>
+                                    {% elif group.category == 'Hand Tool' %}<i class="fas fa-tools" style="color:#5d6d7e; margin-right: 8px;"></i>
+                                    {% elif group.category == 'Accessory' %}<i class="fas fa-keyboard" style="color:#8e44ad; margin-right: 8px;"></i>
+                                    {% elif group.category == 'Network' %}<i class="fas fa-network-wired" style="color:#2980b9; margin-right: 8px;"></i>
+                                    {% else %}<i class="fas fa-cube" style="margin-right: 8px;"></i>{% endif %}
+                                    {{ group.category }}
+                                </td>
+                                <td>
+                                    <strong style="font-size:1.05rem;">{{ group.name }}</strong>
+                                    
+                                    {% if group.items|length == 1 and not group.items.0.serial_number %}
+                                        <br><small style="color: #95a5a6;"><i class="fas fa-barcode"></i> S/N: N/A</small>
+                                    {% else %}
+                                        <details style="margin-top: 8px;">
+                                            <summary class="sn-accordion-summary">
+                                                <i class="fas fa-layer-group"></i> View {{ group.items|length }} Item(s) & S/N <i class="fas fa-chevron-down" style="font-size: 0.7rem; opacity: 0.7; margin-left:3px;"></i>
+                                            </summary>
+                                            <div style="margin-top: 8px; border-left: 2px solid #3b82f6; padding-left: 10px; display: flex; flex-direction: column; gap: 5px;">
+                                                {% for item in group.items %}
+                                                    <div class="sn-list-item">
+                                                        <span style="color: #475569;">
+                                                            <i class="fas fa-barcode" style="color: #94a3b8; margin-right: 4px;"></i> {{ item.serial_number|default:"N/A" }}
+                                                            {% if item.quantity > 1 %}<span style="color:#94a3b8; font-size: 0.7rem; margin-left: 4px;">(Qty: {{ item.quantity }})</span>{% endif %}
+                                                        </span>
+                                                        <div style="display: flex; gap: 8px;">
+                                                            <button class="btn-icon" style="color:#ff5757; background:none; padding:0; cursor:pointer;" title="Edit" 
+                                                                data-id="{{ item.id }}" data-name="{{ item.name }}" data-category="{{ item.category }}" data-quantity="{{ item.quantity }}" data-room="{{ room.id }}" data-sn="{{ item.serial_number|default_if_none:'' }}" onclick="openEditModal(this)">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                            <button class="btn-icon" style="color:#c0392b; background:none; padding:0; cursor:pointer;" title="Delete" onclick="openDeleteModal('{{ item.id }}', '{{ item.name|escapejs }}')">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </details>
+                                    {% endif %}
+                                </td>
+                                <td style="font-weight: bold; font-size: 1.2rem; color: #ff5757;">{{ group.total_qty }}</td>
+                                <td>
+                                    {% if group.items|length == 1 and not group.items.0.serial_number %}
+                                        <div class="btn-action-group">
+                                            <button class="btn-icon btn-edit-style"
+                                                data-id="{{ group.items.0.id }}" data-name="{{ group.items.0.name }}" data-category="{{ group.items.0.category }}"
+                                                data-quantity="{{ group.items.0.quantity }}" data-room="{{ room.id }}" data-sn="" onclick="openEditModal(this)">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <button class="btn-icon btn-delete-style" onclick="openDeleteModal('{{ group.items.0.id }}', '{{ group.items.0.name|escapejs }}')">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    {% else %}
+                                        <span style="font-size: 0.75rem; color: #94a3b8; font-style: italic;"><i class="fas fa-level-down-alt fa-rotate-90" style="margin-right:5px;"></i>Expand list to edit</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="section-title" style="color: #e67e22; border-bottom-color: #fdebd0;">
+                    <i class="fas fa-exclamation-circle"></i> Loose PC Components (Pending Installation)
+                </div>
+                <p style="font-size: 0.8rem; color: #7f8c8d; margin-top: -5px; margin-bottom: 15px;">
+                    <em>Workflow Rule: Internal computer parts should ideally be kept in General Storage until they are attached to a specific PC.</em>
+                </p>
+                <table class="searchable-table" style="margin-bottom: 30px; border-left: 3px solid #e67e22;">
+                    <thead><tr><th width="20%">Category</th><th>Name & Details</th><th width="10%">Total Qty</th><th width="15%">Actions</th></tr></thead>
+                    <tbody>
+                        {% for group in room.grouped_loose %}
+                            <tr class="item-row" data-category="{{ group.category }}" data-name="{{ group.name|lower }} {% for i in group.items %}{{ i.serial_number|default_if_none:''|lower }} {% endfor %}">
+                                <td><i class="fas fa-microchip" style="color:#e67e22; margin-right: 8px;"></i>{{ group.category }}</td>
+                                <td>
+                                    <strong style="font-size:1.05rem;">{{ group.name }}</strong>
+                                    
+                                    {% if group.items|length == 1 and not group.items.0.serial_number %}
+                                        <br><small style="color: #95a5a6;"><i class="fas fa-barcode"></i> S/N: N/A</small>
+                                    {% else %}
+                                        <details style="margin-top: 8px;">
+                                            <summary class="sn-accordion-summary" style="color:#e67e22;">
+                                                <i class="fas fa-layer-group"></i> View {{ group.items|length }} Item(s) & S/N <i class="fas fa-chevron-down" style="font-size: 0.7rem; opacity: 0.7; margin-left:3px;"></i>
+                                            </summary>
+                                            <div style="margin-top: 8px; border-left: 2px solid #e67e22; padding-left: 10px; display: flex; flex-direction: column; gap: 5px;">
+                                                {% for item in group.items %}
+                                                    <div class="sn-list-item">
+                                                        <span style="color: #475569;">
+                                                            <i class="fas fa-barcode" style="color: #94a3b8; margin-right: 4px;"></i> {{ item.serial_number|default:"N/A" }}
+                                                            {% if item.quantity > 1 %}<span style="color:#94a3b8; font-size: 0.7rem; margin-left: 4px;">(Qty: {{ item.quantity }})</span>{% endif %}
+                                                        </span>
+                                                        <div style="display: flex; gap: 8px;">
+                                                            <button class="btn-icon" style="color:#e67e22; background:none; padding:0; cursor:pointer;" title="Edit" 
+                                                                data-id="{{ item.id }}" data-name="{{ item.name }}" data-category="{{ item.category }}" data-quantity="{{ item.quantity }}" data-room="{{ room.id }}" data-sn="{{ item.serial_number|default_if_none:'' }}" onclick="openEditModal(this)">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                            <button class="btn-icon" style="color:#c0392b; background:none; padding:0; cursor:pointer;" title="Delete" onclick="openDeleteModal('{{ item.id }}', '{{ item.name|escapejs }}')">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </details>
+                                    {% endif %}
+                                </td>
+                                <td style="font-weight: bold; font-size: 1.2rem; color: #e67e22;">{{ group.total_qty }}</td>
+                                <td>
+                                    {% if group.items|length == 1 and not group.items.0.serial_number %}
+                                        <div class="btn-action-group">
+                                            <button class="btn-icon btn-edit-style" style="background-color: #e67e22;"
+                                                data-id="{{ group.items.0.id }}" data-name="{{ group.items.0.name }}" data-category="{{ group.items.0.category }}"
+                                                data-quantity="{{ group.items.0.quantity }}" data-room="{{ room.id }}" data-sn="" onclick="openEditModal(this)">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <button class="btn-icon btn-delete-style" style="color:#e67e22; border-color:#e67e22;" onclick="openDeleteModal('{{ group.items.0.id }}', '{{ group.items.0.name|escapejs }}')">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    {% else %}
+                                        <span style="font-size: 0.75rem; color: #94a3b8; font-style: italic;"><i class="fas fa-level-down-alt fa-rotate-90" style="margin-right:5px;"></i>Expand list to edit</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="section-title"><i class="fas fa-desktop"></i> PC Workstation Components</div>
+                {% for pc in room.personalcomputer_set.all %}
+                    <details class="pc-dropdown-card">
+                        <summary class="pc-card-header">
+                            <span style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-chevron-down" style="font-size: 0.8rem; opacity: 0.5;"></i>
+                                <i class="fas fa-tv" style="color: inherit;"></i> {{ pc.custom_id }} Components
+                            </span>
+                            <span style="font-size: 0.8rem; opacity: 0.8;">{{ pc.components.count }} Items <i class="fas fa-lock" style="margin-left:5px;"></i></span>
+                        </summary>
+                        <div class="pc-card-body">
+                            <table class="searchable-table pc-inner-table">
+                                <thead><tr><th>Category</th><th>Part Type</th><th>Component Name & Serial</th><th width="80">Qty</th></tr></thead>
+                                <tbody>
+                                    {% if pc.is_igpu and pc.graphics_card %}
+                                    <tr style="background-color: #f8fafc;">
+                                        <td>Computer Part</td>
+                                        <td><span style="font-weight: 600; color: #2c3e50;">Integrated GPU</span></td>
+                                        <td>
+                                            <strong>{{ pc.graphics_card }}</strong> 
+                                            <span class="badge-status" style="background:#e0f2fe; color:#3b82f6; padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:5px;">iGPU</span><br>
+                                            <small style="color: #95a5a6;"><i class="fas fa-microchip"></i> Integrated into Processor</small>
+                                        </td>
+                                        <td style="color: #3b82f6; font-weight: bold;">Built-in</td>
+                                    </tr>
+                                    {% endif %}
+
+                                    {% for item in pc.components.all %}
+                                        {% if item.category != 'Office Supplies' and item.category != 'Consumable' %}
+                                        <tr class="item-row" data-category="{{ item.category }}" data-name="{{ item.name|lower }}">
+                                            <td>{{ item.category }}</td>
+                                            <td>
+                                                <span style="font-weight: 600; color: #2c3e50;">
+                                                {% if pc.processor == item.name %}Processor
+                                                {% elif pc.motherboard == item.name %}Motherboard
+                                                {% elif pc.graphics_card == item.name %}Dedicated GPU
+                                                {% elif pc.monitor_details == item.name %}Monitor
+                                                {% elif pc.avr_details == item.name %}AVR
+                                                {% elif pc.keyboard_details == item.name %}Keyboard
+                                                {% elif pc.mouse_details == item.name %}Mouse
+                                                {% elif pc.ram == item.name or pc.ram_2 == item.name or pc.ram_3 == item.name or pc.ram_4 == item.name %}Memory (RAM)
+                                                {% elif pc.storage == item.name or pc.storage_2 == item.name or pc.storage_3 == item.name or pc.storage_4 == item.name %}Storage Drive
+                                                {% elif "HDMI" in item.name %}HDMI Cable
+                                                {% elif "VGA" in item.name %}VGA Cable
+                                                {% else %}Peripheral/Other{% endif %}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <strong>{{ item.name }}</strong><br>
+                                                <small style="color: #95a5a6;"><i class="fas fa-barcode"></i> S/N: {{ item.serial_number|default:"N/A" }}</small>
+                                            </td>
+                                            <td style="color: #ff5757; font-weight: bold;">{{ item.quantity }}</td>
+                                        </tr>
+                                        {% endif %}
+                                    {% empty %}
+                                        {% if not pc.is_igpu %}
+                                        <tr><td colspan="4" style="text-align:center; padding:15px; color:#999; font-style:italic;">No components added to this PC yet.</td></tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+                {% empty %}
+                    <p style="color: #7f8c8d; font-style: italic; padding: 10px;">No PCs currently registered in this room.</p>
+                {% endfor %}
+
+            </div>
+            {% endfor %}
+
+        </div>
+    </main>
+
+    <div id="addModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header-custom">
+                <h3 class="modal-title" style="color: #ff5757;"><i class="fas fa-plus-circle"></i> Add New Asset</h3>
+                <button class="close-btn" onclick="closeAddModal()">&times;</button>
+            </div>
+            <form action="{% url 'add_tool' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="status" value="Working">
+
+                <label>Assign to Room</label>
+                <select name="room" id="add_room_select" class="form-select" onchange="toggleComputerPartCategory('add')">
+                    <option value="">-- General Storage (Unassigned) --</option>
+                    {% for r in rooms %}
+                        <option value="{{ r.id }}">{{ r.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <label>Category</label>
+                <select name="category" id="add_category" class="form-select" onchange="updateSubCategories('add')" required>
+                    <option value="" disabled selected>-- Select Category --</option>
+                    <option value="Animation">Animation</option> 
+                    <option value="Computer Part">Computer Part</option>
+                    <option value="Hand Tool">Hand Tool</option>
+                    <option value="Accessory">Accessory</option>
+                    <option value="Network">Network Device</option>
+                    <option value="Other">Other</option>
+                </select>
+
+                <label>Item Name / Sub-Category</label>
+                <select id="add_sub_select" class="form-select" onchange="syncNameField('add')">
+                    <option value="" disabled selected>-- Select Item --</option>
+                </select>
+                
+                <div id="dynamic_specs_container" style="display:none; background:#f8fafc; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid #e2e8f0;">
+                    <div class="form-row" style="margin-bottom:0;">
+                        <div class="form-group">
+                            <label>Brand / Manufacturer</label>
+                            <input type="text" id="add_brand_input" class="form-control" placeholder="e.g., Kingston, Intel" onkeyup="buildDynamicName('add')" style="margin-bottom:0;">
+                        </div>
+                        <div class="form-group">
+                            <label>Specs / Model / Size</label>
+                            <input type="text" id="add_specs_input" class="form-control" placeholder="e.g., 8GB, Core i5" onkeyup="buildDynamicName('add')" style="margin-bottom:0;">
+                        </div>
+                    </div>
+                    <p style="font-size:0.7rem; color:#7f8c8d; margin-top:10px; margin-bottom:0;"><i class="fas fa-info-circle"></i> Final Name: <strong id="preview_final_name" style="color:#2c3e50;"></strong></p>
+                </div>
+
+                <input type="text" name="name" id="add_name_input" class="form-control hidden-field" placeholder="Enter custom item name..." required>
+
+                <div class="form-row" style="margin-bottom: 15px;">
+                    <div class="form-group full-width">
+                        <label>Quantity</label>
+                        <input type="number" name="quantity" id="add_quantity" class="form-control" value="1" min="1" required onchange="generateSnFields('add')" onkeyup="generateSnFields('add')">
+                    </div>
+                </div>
+
+                <div id="sn_container_add">
+                    </div>
+
+                <button type="submit" class="btn-save-modal">Save Asset</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header-custom">
+                <h3 class="modal-title" style="color: #ff5757;"><i class="fas fa-edit"></i> Edit Asset</h3>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="editForm" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="status" id="edit_status" value="Working">
+
+                <label>Assign to Room</label>
+                <select name="room" id="edit_room" class="form-select" onchange="toggleComputerPartCategory('edit')">
+                    <option value="">-- General Storage (Unassigned) --</option>
+                    {% for r in rooms %}
+                        <option value="{{ r.id }}">{{ r.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <label>Category</label>
+                <select name="category" id="edit_category" class="form-select" onchange="updateSubCategories('edit')">
+                    <option value="Animation">Animation</option> 
+                    <option value="Computer Part">Computer Part</option>
+                    <option value="Hand Tool">Hand Tool</option>
+                    <option value="Accessory">Accessory</option>
+                    <option value="Network">Network Device</option>
+                    <option value="Other">Other</option>
+                </select>
+
+                <label>Item Name</label>
+                <input type="text" name="name" id="edit_name_input" class="form-control" required>
+                <select id="edit_sub_select" class="form-select" onchange="syncNameField('edit')" style="margin-top: -10px; font-size: 0.8rem; color: #ff5757; border-color: #fff5f5;">
+                    <option value="" selected>-- Change Item Type (Optional) --</option>
+                </select>
+
+                <label>Serial Number (Optional)</label>
+                <input type="text" name="serial_number" id="edit_sn_input" class="form-control" placeholder="Enter S/N if applicable...">
+
+                <label style="margin-top: 15px;">Quantity</label>
+                <input type="number" name="quantity" id="edit_quantity" class="form-control" required>
+
+                <button type="submit" class="btn-save-modal">Update Asset</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="deleteToolModal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 400px; text-align: center;">
+            <div style="text-align: right;">
+                <button class="close-btn" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <i class="fas fa-trash-alt" style="font-size: 4rem; color: #ff5757; margin-bottom: 20px;"></i>
+            <h3 style="color: #2c3e50; margin: 0;">Are you sure?</h3>
+            <p style="color: #7f8c8d; margin: 10px 0 25px 0;">
+                You are about to delete <strong id="delete_item_name" style="color: #ff5757;"></strong>.
+            </p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button type="button" onclick="closeDeleteModal()" class="btn-cancel">Cancel</button>
+                <a id="confirmDeleteBtn" href="#" class="btn-delete-confirm">Yes, Delete</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openTab(tabName, btnElement) {
+            var contents = document.getElementsByClassName("tab-content");
+            for (var i = 0; i < contents.length; i++) {
+                contents[i].classList.remove("active");
+                contents[i].style.display = "none";
+            }
+            var btns = document.getElementsByClassName("tab-btn");
+            for (var i = 0; i < btns.length; i++) {
+                btns[i].classList.remove("active");
+            }
+            var selectedTab = document.getElementById(tabName);
+            selectedTab.classList.add("active");
+            selectedTab.style.display = "block";
+            if(btnElement) btnElement.classList.add("active");
+            localStorage.setItem('activeToolTab', tabName);
+            filterTable();
+        }
+
+        window.onload = function() {
+            var activeTab = localStorage.getItem('activeToolTab');
+            if (activeTab && document.getElementById(activeTab)) {
+                openTab(activeTab, document.getElementById('btn-' + activeTab)); 
+            } else {
+                openTab('tab-unassigned', document.getElementById('btn-tab-unassigned')); 
+            }
+        };
+
+        // EXPANDED PRESETS
+        const itemPresets = {
+            "Animation": ["Drawing Tablet", "Stylus Pen", "Lightbox", "Capture Card", "Green Screen", "Tripod"],
+            "Computer Part": ["Processor", "Motherboard", "RAM (DDR3)", "RAM (DDR4)", "RAM (DDR5)", "HDD", "SSD (SATA)", "SSD (NVMe)", "Power Supply", "Video Card", "CMOS Battery", "Casing", "System Fan"],
+            "Hand Tool": ["Screwdriver Set", "Pliers", "Crimping Tool", "LAN Tester", "Wire Stripper", "Anti-Static Wrist Strap", "Brush"],
+            "Network": ["Router", "Switch", "Access Point", "Patch Panel", "LAN Cable (Roll)", "RJ45 Connectors (Box)"],
+            "Accessory": ["Monitor", "Mouse", "Keyboard", "HDMI Cable", "VGA Cable", "DisplayPort Cable", "Power Cord", "AVR", "UPS", "Extension Wire"],
+            "Other": ["Other"]
+        };
+
+        function updateSubCategories(mode) {
+            const catSelect = document.getElementById(mode + '_category');
+            const subSelect = document.getElementById(mode + '_sub_select');
+            const nameInput = document.getElementById(mode + '_name_input');
+            const items = itemPresets[catSelect.value] || [];
+
+            subSelect.innerHTML = '<option value="" disabled selected>-- Select Item --</option>';
+            items.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item;
+                opt.innerHTML = item;
+                subSelect.appendChild(opt);
+            });
+            const customOpt = document.createElement('option');
+            customOpt.value = "Custom";
+            customOpt.innerHTML = "Type Custom Name...";
+            subSelect.appendChild(customOpt);
+
+            if (mode === 'add') {
+                nameInput.classList.add('hidden-field');
+                subSelect.style.display = 'block';
+            }
+        }
+
+        // NEW: Dynamic Naming Engine
+        function buildDynamicName(mode) {
+            const subSelect = document.getElementById(mode + '_sub_select').value;
+            const nameInput = document.getElementById(mode + '_name_input');
+            const previewText = document.getElementById('preview_final_name');
+            
+            if (subSelect === 'Custom') return;
+            
+            const brand = document.getElementById(mode + '_brand_input') ? document.getElementById(mode + '_brand_input').value.trim() : '';
+            const specs = document.getElementById(mode + '_specs_input') ? document.getElementById(mode + '_specs_input').value.trim() : '';
+            
+            let finalName = '';
+            if (brand) finalName += brand + ' ';
+            finalName += subSelect;
+            if (specs) finalName += ' ' + specs;
+            
+            let cleanedName = finalName.trim();
+            nameInput.value = cleanedName;
+            if(previewText) previewText.innerText = cleanedName;
+        }
+
+        function syncNameField(mode) {
+            const subSelect = document.getElementById(mode + '_sub_select');
+            const nameInput = document.getElementById(mode + '_name_input');
+            const dynamicContainer = document.getElementById('dynamic_specs_container');
+            
+            if (mode === 'add') {
+                if (subSelect.value === 'Custom') {
+                    nameInput.value = "";
+                    nameInput.classList.remove('hidden-field');
+                    nameInput.readOnly = false;
+                    if(dynamicContainer) dynamicContainer.style.display = 'none';
+                    nameInput.focus();
+                } else {
+                    nameInput.classList.add('hidden-field');
+                    nameInput.readOnly = true;
+                    if(dynamicContainer) {
+                        dynamicContainer.style.display = 'block';
+                        document.getElementById('add_brand_input').value = '';
+                        document.getElementById('add_specs_input').value = '';
+                        buildDynamicName('add');
+                    }
+                }
+            } else {
+                if (subSelect.value === 'Custom') {
+                    nameInput.value = "";
+                    nameInput.classList.remove('hidden-field');
+                    nameInput.focus();
+                } else {
+                    nameInput.value = subSelect.value;
+                }
+            }
+        }
+
+        // NEW: Dynamic Serial Number Inputs
+        function generateSnFields(mode) {
+            if (mode === 'edit') return; 
+            
+            const qty = parseInt(document.getElementById('add_quantity').value) || 1;
+            const container = document.getElementById('sn_container_add');
+            container.innerHTML = ''; 
+            
+            if (qty > 30) {
+                 container.innerHTML = '<p style="font-size:0.8rem; color:#e67e22;"><i class="fas fa-exclamation-circle"></i> Batch addition limit reached. Items will save without S/N. Edit them individually later if needed.</p>';
+                 return;
+            }
+            
+            for (let i = 1; i <= qty; i++) {
+                container.innerHTML += `
+                    <div style="margin-bottom: 8px;">
+                        <label style="font-size:0.75rem; color:#7f8c8d;">Serial Number ${i}</label>
+                        <input type="text" name="serial_numbers[]" class="form-control" placeholder="S/N for Item ${i} (Optional)" style="margin-bottom:0;">
+                    </div>
+                `;
+            }
+        }
+
+        function toggleComputerPartCategory(mode) {
+            const roomSelect = document.getElementById(mode === 'add' ? 'add_room_select' : 'edit_room');
+            const categorySelect = document.getElementById(mode + '_category');
+            for (let i = 0; i < categorySelect.options.length; i++) {
+                if (categorySelect.options[i].value === 'Computer Part') {
+                    if (roomSelect.value !== "") {
+                        categorySelect.options[i].disabled = true;
+                        categorySelect.options[i].style.display = 'none';
+                        if (categorySelect.value === 'Computer Part') {
+                            categorySelect.value = ""; 
+                            updateSubCategories(mode);
+                        }
+                    } else {
+                        categorySelect.options[i].disabled = false;
+                        categorySelect.options[i].style.display = '';
+                    }
+                }
+            }
+        }
+
+        function openAddModal() { 
+            document.getElementById('add_room_select').value = "";
+            document.getElementById('add_category').value = "";
+            document.getElementById('add_quantity').value = "1";
+            document.getElementById('dynamic_specs_container').style.display = 'none';
+            generateSnFields('add'); 
+            toggleComputerPartCategory('add');
+            updateSubCategories('add');
+            document.getElementById('addModal').style.display = 'flex'; 
+        }
+        function closeAddModal() { document.getElementById('addModal').style.display = 'none'; }
+
+        function openEditModal(btn) {
+            const d = btn.dataset;
+            document.getElementById('edit_name_input').value = d.name;
+            document.getElementById('edit_category').value = d.category;
+            document.getElementById('edit_quantity').value = d.quantity;
+            document.getElementById('edit_room').value = d.room;
+            document.getElementById('edit_sn_input').value = d.sn || ''; 
+            
+            const tr = btn.closest('.item-row');
+            if(tr && tr.closest('#tab-defective')) document.getElementById('edit_status').value = 'Defective';
+            else document.getElementById('edit_status').value = 'Working';
+            
+            document.getElementById('editForm').action = "/edit-tool/" + d.id + "/";
+            toggleComputerPartCategory('edit');
+            updateSubCategories('edit');
+            document.getElementById('editModal').style.display = 'flex';
+        }
+        function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
+
+        function openDeleteModal(id, name) {
+            document.getElementById('delete_item_name').innerText = name;
+            document.getElementById('confirmDeleteBtn').href = "/delete-tool/" + id + "/";
+            document.getElementById('deleteToolModal').style.display = 'flex';
+        }
+        function closeDeleteModal() { document.getElementById('deleteToolModal').style.display = 'none'; }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) { closeAddModal(); closeEditModal(); closeDeleteModal(); }
+        }
+
+        function filterTable() {
+            var input = document.getElementById("searchInput");
+            var filter = input.value.toLowerCase().trim(); 
+            var categorySelect = document.getElementById("categoryFilter");
+            var categoryValue = categorySelect.value;
+
+            var activeTab = document.querySelector('.tab-content.active');
+            if (!activeTab) return;
+
+            var rows = activeTab.getElementsByClassName("item-row");
+
+            for (var i = 0; i < rows.length; i++) {
+                var rowName = rows[i].getAttribute("data-name");
+                var rowCat = rows[i].getAttribute("data-category");
+                
+                var nameMatch = rowName.indexOf(filter) > -1;
+                var catMatch = (categoryValue === "All") || (rowCat === categoryValue);
+
+                if (nameMatch && catMatch) {
+                    rows[i].style.display = "";
+                    if (filter !== "") {
+                        var parentDetails = rows[i].closest('details');
+                        if (parentDetails) parentDetails.open = true;
+                    }
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+</body>
+</html>

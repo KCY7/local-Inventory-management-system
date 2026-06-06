@@ -1,0 +1,133 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Transmittal Form</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #000; font-size: 11pt; }
+        
+        /* HEADER */
+        .header { position: relative; height: 100px; margin-bottom: 20px; }
+        .logo-left { position: absolute; left: 0; top: 0; width: 80px; height: auto; }
+        .logo-right { position: absolute; right: 0; top: 0; width: 100px; height: auto; }
+        
+        .school-info { text-align: center; padding-top: 10px; }
+        .school-name { color: #c0392b; font-weight: bold; font-size: 20pt; margin: 0; line-height: 1; }
+        .school-sub { color: #555; font-size: 12pt; margin: 0; }
+        
+        .form-title { text-align: center; font-weight: bold; font-size: 14pt; margin: 20px 0; color: #444; text-transform: uppercase; }
+
+        /* INFO GRID */
+        .info-box { border: 1px solid #000; display: flex; width: 100%; margin-bottom: 0; }
+        .info-col-left { width: 60%; border-right: 1px solid #000; }
+        .info-col-right { width: 40%; }
+        
+        .row { border-bottom: 1px solid #000; padding: 5px 8px; display: flex; align-items: center; height: 25px; }
+        .row:last-child { border-bottom: none; }
+        .label { font-weight: bold; margin-right: 5px; width: 100px; }
+        .value { flex-grow: 1; }
+
+        /* MAIN TABLE */
+        .main-table { width: 100%; border-collapse: collapse; border: 1px solid #000; margin-top: -1px; }
+        .main-table th, .main-table td { border: 1px solid #000; padding: 8px; text-align: center; }
+        .main-table th { background: #f0f0f0; padding: 5px; font-size: 10pt; }
+        .col-qty { width: 10%; }
+        .col-desc { width: 50%; }
+        .col-remarks { width: 40%; }
+        
+        .empty-row td { height: 25px; }
+
+        /* SIGNATURES */
+        .signatures { display: flex; justify-content: space-between; margin-top: 40px; padding: 0 20px; }
+        .sign-block { width: 40%; }
+        .sign-label { font-weight: bold; margin-bottom: 40px; }
+        .sign-line { border-top: 1px solid #000; text-align: center; padding-top: 5px; font-size: 10pt; }
+        .sign-name { font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 0; }
+
+        /* FOOTER BAR */
+        .footer-bar { 
+            position: fixed; bottom: 0; left: 0; right: 0; 
+            height: 40px; display: flex; align-items: center; justify-content: space-between;
+            border-top: 3px solid #c0392b; background: white; padding: 10px 40px;
+        }
+        .footer-left { background: #2c3e50; color: white; padding: 5px 15px; font-size: 9pt; display: flex; gap: 10px; border-radius: 4px; }
+        .footer-right { color: #c0392b; font-weight: bold; font-style: italic; font-size: 12pt; }
+
+        @media print {
+            @page { margin: 0.5in; size: portrait; }
+            .no-print { display: none; }
+            .footer-bar { position: fixed; bottom: 0; }
+        }
+    </style>
+</head>
+<body onload="window.print()">
+
+    <div class="header">
+        <img src="{% static 'images/logo.png' %}" class="logo-left">
+        <div class="school-info">
+            <h1 class="school-name">HOLY CHILD</h1>
+            <p class="school-sub">College of Davao</p>
+        </div>
+        <img src="{% static 'images/logo_42.png' %}" class="logo-right" alt="42 Years" onerror="this.style.display='none'">
+    </div>
+
+    <div class="form-title">TRANSMITTAL FORM</div>
+
+    <div class="info-box">
+        <div class="info-col-left">
+            <div class="row"><span class="label">Date:</span> <span class="value">{{ today|date:"F d, Y" }}</span></div>
+            <div class="row"><span class="label">From:</span> <span class="value">Inventory Office</span></div>
+            <div class="row" style="height: 35px;"><span class="label">Delivered by:</span> <span class="value"></span></div>
+        </div>
+        <div class="info-col-right">
+            <div class="row"><span class="label" style="width: 30px;">To:</span> <span class="value">{{ borrower.borrow_location }} ({{ borrower.borrower_name }})</span></div>
+            <div class="row" style="height: 35px;"><span class="label">Date:</span> <span class="value"></span></div>
+        </div>
+    </div>
+
+    <table class="main-table">
+        <thead>
+            <tr>
+                <th class="col-qty">Qty</th>
+                <th class="col-desc">Item Description/ Specifications</th>
+                <th class="col-remarks">Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in asset_list %}
+            <tr>
+                <td>1</td>
+                <td style="text-align: left;">{{ item.name }}</td>
+                <td>{{ item.status }}</td>
+            </tr>
+            {% endfor %}
+            {% for i in "123456" %}<tr class="empty-row"><td></td><td></td><td></td></tr>{% endfor %}
+        </tbody>
+    </table>
+
+    <div class="signatures">
+        <div class="sign-block">
+            <div class="sign-label">Received by:</div>
+            <div class="sign-line">(Signature Over Printed Name)</div>
+        </div>
+        <div class="sign-block">
+            <div class="sign-label">Noted by:</div>
+            <div style="text-align: center; margin-bottom: 5px;">
+                <span class="sign-name">JEFFREY C. ALOLO</span>
+            </div>
+            <div class="sign-line">FITSP-Panabo School Admin</div>
+        </div>
+    </div>
+
+    <div class="footer-bar">
+        <div class="footer-left">
+            <span><i class="fab fa-facebook"></i> @HOLYCHILDofficial</span>
+            <span>www.HOLYCHILD.edu.ph</span>
+        </div>
+        <div class="footer-right">
+            LET US BE PART
+        </div>
+    </div>
+</body>
+</html>

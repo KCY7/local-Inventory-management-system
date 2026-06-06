@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Borrower's Slip</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #000; font-size: 10pt; }
+        
+        /* HEADER */
+        .header { position: relative; height: 90px; margin-bottom: 10px; }
+        .logo-left { position: absolute; left: 0; top: 0; width: 70px; height: auto; }
+        .logo-right { position: absolute; right: 0; top: 0; width: 80px; height: auto; }
+        
+        .school-header { text-align: center; padding-top: 10px; }
+        .school-name { color: #c0392b; font-weight: bold; font-size: 16pt; margin: 0; }
+        .school-sub { font-size: 10pt; color: #555; }
+        
+        .doc-title { text-align: center; font-weight: bold; font-size: 14pt; margin: 15px 0; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* HEADER GRID INFO */
+        .info-container { display: flex; border: 1px solid #000; margin-bottom: 15px; }
+        .info-left { width: 60%; border-right: 1px solid #000; }
+        .info-right { width: 40%; }
+        
+        .info-row { border-bottom: 1px solid #000; padding: 4px 8px; display: flex; }
+        .info-row:last-child { border-bottom: none; }
+        .lbl { width: 140px; font-weight: normal; }
+        .val { font-weight: bold; flex-grow: 1; }
+
+        /* ITEM TABLE */
+        .item-table { width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 5px; font-size: 9pt; }
+        .item-table th, .item-table td { border: 1px solid #000; padding: 5px; text-align: center; }
+        .item-table th { background: #ddd; font-weight: bold; }
+        
+        /* FOOTER */
+        .footer-section { display: flex; gap: 20px; margin-top: 20px; }
+        .terms { width: 55%; font-size: 7pt; text-align: justify; line-height: 1.2; }
+        .terms h4 { margin: 0 0 5px 0; font-size: 8pt; text-decoration: underline; }
+        .terms ol { padding-left: 15px; margin: 0; }
+        
+        .signatures { width: 45%; display: flex; flex-direction: column; justify-content: space-between; }
+        .sign-box { margin-bottom: 20px; }
+        .sign-line { border-bottom: 1px solid #000; height: 30px; margin-bottom: 5px; }
+        .sign-label { font-weight: bold; text-align: center; background: #eee; padding: 2px; border: 1px solid #ccc; }
+
+        .verse { text-align: center; font-size: 8pt; font-style: italic; margin-top: 10px; color: #555; }
+
+        @media print { @page { margin: 0.5in; size: portrait; } .no-print { display: none; } }
+    </style>
+</head>
+<body onload="window.print()">
+
+    <div class="header">
+        <img src="{% static 'images/logo.png' %}" class="logo-left">
+        <div class="school-header">
+            <h1 class="school-name">HOLY CHILD</h1>
+            <div class="school-sub">College of Davao</div>
+        </div>
+        <img src="{% static 'images/logo_42.png' %}" class="logo-right" alt="42 Years" onerror="this.style.display='none'">
+    </div>
+
+    <div class="doc-title">BORROWER'S SLIP</div>
+    <div style="text-align: right; font-size: 7pt; margin-bottom: 5px;">REMINDER: PRESENT SCHOOL ID WHEN BORROWING</div>
+
+    <div class="info-container">
+        <div class="info-left">
+            <div class="info-row"><span class="lbl">Borrower's Name</span><span class="val">{{ borrower.borrower_name }}</span></div>
+            <div class="info-row"><span class="lbl">Department/Position</span><span class="val"></span></div>
+            <div class="info-row"><span class="lbl">(Students) Grade/Sec</span><span class="val"></span></div>
+        </div>
+        <div class="info-right">
+            <div class="info-row"><span class="lbl" style="width: 80px;">Date</span><span class="val">{{ today|date:"m/d/Y" }}</span></div>
+            <div class="info-row"><span class="lbl" style="width: 80px;">Contact No</span><span class="val">{{ borrower.borrower_contact }}</span></div>
+            <div class="info-row"><span class="lbl" style="width: 80px;">Branch</span><span class="val">Davao</span></div>
+        </div>
+    </div>
+
+    <table class="item-table">
+        <thead>
+            <tr>
+                <th>Item/s/Equipment</th>
+                <th>Description</th>
+                <th>Remarks</th>
+                <th>Purpose</th>
+                <th>Expected Return</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in asset_list %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.category }}</td>
+                <td>{{ item.status }}</td>
+                <td>{{ borrower.borrow_location }}</td>
+                <td>{{ borrower.return_date|date:"m/d/Y" }}</td>
+            </tr>
+            {% endfor %}
+            {% for i in "1234" %}<tr style="height: 25px;"><td></td><td></td><td></td><td></td><td></td></tr>{% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer-section">
+        <div class="terms">
+            <h4>Terms and Conditions:</h4>
+            <ol>
+                <li>The borrower agrees to take full responsibility for the borrowed equipment.</li>
+                <li>The borrower understands that damage, loss, or theft is their responsibility.</li>
+                <li>The borrower agrees to use equipment only for specified purposes.</li>
+                <li>Equipment must be returned in the same condition as received.</li>
+                <li>Failure to return on time may result in penalties.</li>
+            </ol>
+            <p style="margin-top: 5px;">I acknowledge that I have read and understood the terms above.</p>
+        </div>
+
+        <div class="signatures">
+            <div class="sign-box">
+                <div class="sign-label">Borrower's Signature / Date</div>
+                <div class="sign-line" style="margin-top: 30px; text-align: center; font-weight: bold;">{{ borrower.borrower_name }}</div>
+            </div>
+            <div class="sign-box">
+                <div class="sign-label">Staff/Authorized Personnel / Date</div>
+                <div class="sign-line" style="margin-top: 30px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="verse">Proverbs 22:6 - Train up a child in the way he should go...</div>
+</body>
+</html>

@@ -1,0 +1,647 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Office Supply and Medicines | Inventory System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* BASE LAYOUT */
+        body { font-family: 'Poppins', sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; color: #333; display: flex; height: 100vh; overflow: hidden; }
+
+        /* SIDEBAR - STANDARDIZED */
+        .sidebar { width: 260px; background-color: #2c3e50; color: white; display: flex; flex-direction: column; box-shadow: 4px 0 15px rgba(0,0,0,0.05); flex-shrink: 0; z-index: 100; }
+        .sidebar-header { 
+            padding: 25px 20px; 
+            text-align: center; 
+            border-bottom: 1px solid rgba(255,255,255,0.05); 
+            background: rgba(0,0,0,0.1); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            }
+
+        .sidebar-header img { 
+            width: 70px; 
+            height: auto; 
+            margin: 0 0 10px 0; 
+            border-radius: 50%; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
+            display: block;
+            }
+
+        .sidebar-header h2 { 
+            font-size: 0.85rem; 
+            margin: 0; 
+            padding: 0;
+            letter-spacing: 1px; 
+            line-height: 1.5; 
+            font-weight: 600; 
+            opacity: 0.9; 
+            }
+
+        .sidebar-menu { flex-grow: 1; padding: 20px 0; overflow-y: auto; }
+        .menu-item { padding: 15px 25px; display: flex; align-items: center; gap: 12px; color: rgba(255,255,255,0.7); text-decoration: none; transition: all 0.2s ease-in-out; font-size: 0.9rem; border-left: 4px solid transparent; }
+        .menu-item:hover, .menu-item.active { background-color: rgba(255,255,255,0.05); color: white; border-left-color: #ff5757; }
+        .menu-item i { width: 20px; text-align: center; }
+        .sidebar-footer { padding: 20px; background-color: rgba(0,0,0,0.15); border-top: 1px solid rgba(255,255,255,0.05); }
+        .logout-btn { background-color: #ff5757; color: white; padding: 12px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; font-weight: 600; box-shadow: 0 4px 10px rgba(255, 87, 87, 0.3); }
+        .logout-btn:hover { background-color: #e04a4a; transform: translateY(-1px); }
+
+        /* MAIN CONTENT */
+        .main-content { flex-grow: 1; overflow-y: auto; padding: 40px; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); min-height: 500px; }
+        
+        /* HEADER FLEX */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        
+        /* SEARCH & FILTER BAR */
+        .filter-bar { display: flex; gap: 10px; align-items: center; flex-grow: 1; margin-left: 20px; max-width: 600px; }
+        .search-input { padding: 10px 15px; border-radius: 6px; border: 1px solid #ddd; flex-grow: 1; font-family: inherit; font-size: 0.9rem; }
+        .search-input:focus { outline: none; border-color: #ff5757; }
+        .cat-filter { padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-family: inherit; font-size: 0.9rem; background: white; cursor: pointer; }
+        .cat-filter:focus { outline: none; border-color: #ff5757; }
+
+        /* ADD BUTTON */
+        .btn-action { padding: 10px 20px; border-radius: 6px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; transition: transform 0.2s, box-shadow 0.2s; border: none; cursor: pointer; color: white; }
+        .btn-red-theme { background-color: #ff5757; }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(255, 87, 87, 0.3); color: white; }
+
+        /* TABS */
+        .tabs-wrapper { display: flex; gap: 10px; border-bottom: 2px solid #eee; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+        .tab-btn { padding: 10px 20px; background: #f8f9fa; border: 1px solid #eee; border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer; font-weight: 600; color: #7f8c8d; transition: all 0.2s; white-space: nowrap; }
+        .tab-btn:hover { background: #fff5f5; color: #ff5757; }
+        .tab-btn.active { background: #ff5757; color: white; border-color: #ff5757; }
+
+        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* TABLE */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; padding: 15px; background: #f8f9fa; border-bottom: 2px solid #eee; color: #2c3e50; font-weight: 600; text-transform: uppercase; font-size: 0.85rem;}
+        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 0.95rem; vertical-align: middle; }
+        
+        /* TABLE ACTION BUTTONS */
+        .btn-action-group { display: flex; gap: 5px; }
+        .btn-icon { display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: background 0.2s; color: white; height: 34px; font-family: inherit; }
+        
+        .btn-edit-style { background-color: #ff5757; padding: 0 14px; font-weight: 500; gap: 6px; }
+        .btn-edit-style:hover { background-color: #e04a4a; }
+        .btn-delete-style { background-color: white; color: #ff5757; border: 1px solid #ff5757; width: 34px; }
+        .btn-delete-style:hover { background-color: #fff5f5; color: #c0392b; }
+
+        /* MODALS */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
+        .modal-content { background: white; width: 90%; max-width: 450px; padding: 30px; border-radius: 12px; position: relative; animation: slideUp 0.3s ease-out;}
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .close-modal { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 1.5rem; color: #999; cursor: pointer; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; color: #444; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
+        .form-control:focus { border-color: #ff5757; outline: none; }
+        
+        .modal-submit { width: 100%; background: #ff5757; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 10px; font-size: 1rem; }
+        .modal-submit:hover { background: #e04a4a; }
+        
+        .btn-delete-confirm { background: #c0392b; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; text-decoration: none; display: inline-block; transition: background 0.2s; font-size: 1rem; cursor: pointer; }
+        .btn-delete-confirm:hover { background: #a93226; color: white; }
+        .btn-cancel { background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; font-size: 1rem; }
+        .btn-cancel:hover { background: #7f8c8d; }
+        
+        /* BADGES */
+        .badge-cat { padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; background: #e8f8f5; color: #27ae60; border: 1px solid #d0ece7; margin-bottom: 5px; display: inline-block; }
+        .badge-med { background: #fef5e7; color: #d35400; border: 1px solid #fdebd0; }
+
+        /* --- TOAST NOTIFICATIONS --- */
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { background: white; border-left: 5px solid #ff5757; box-shadow: 0 5px 15px rgba(0,0,0,0.15); padding: 15px 20px; border-radius: 8px; font-size: 0.9rem; color: #2c3e50; font-weight: 500; display: flex; align-items: center; gap: 12px; animation: slideInRight 0.3s ease-out forwards, fadeOut 0.5s ease-out 4.5s forwards; }
+        .toast-error { border-left-color: #c0392b; }
+        .toast-error i { color: #c0392b; font-size: 1.2rem; }
+        .toast-success { border-left-color: #27ae60; }
+        .toast-success i { color: #27ae60; font-size: 1.2rem; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+    </style>
+</head>
+<body>
+
+    {% if messages %}
+        <div class="toast-container" id="toast-container">
+            {% for message in messages %}
+                <div class="toast {% if message.tags %}toast-{{ message.tags }}{% endif %}">
+                    {% if message.tags == 'error' %}<i class="fas fa-exclamation-circle"></i>
+                    {% else %}<i class="fas fa-check-circle"></i>{% endif %}
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+        <script>
+            setTimeout(() => {
+                const toastBox = document.getElementById('toast-container');
+                if(toastBox) toastBox.remove();
+            }, 5000);
+        </script>
+    {% endif %}
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="{% static 'images/holychild.png' %}" alt="HCC Logo">
+            <h2>HOLY CHILD COLLEGE OF DAVAO DEL NORTE<br>INVENTORY SYSTEM</h2>
+        </div>
+        <nav class="sidebar-menu">
+            <a href="{% url 'dashboard' %}" class="menu-item"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="{% url 'manage_laptops' %}" class="menu-item"><i class="fas fa-laptop"></i> Laptop Dashboard</a>
+            <a href="{% url 'manage_office_supplies' %}" class="menu-item active"><i class="fas fa-paperclip"></i> Office Supplies</a>
+            <a href="{% url 'manage_tools' %}" class="menu-item"><i class="fas fa-tools"></i> Manage Assets</a>
+            <a href="{% url 'master_list' %}" class="menu-item"><i class="fas fa-database"></i> Full Database</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="{% url 'logout' %}" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="header">
+                <div style="flex-shrink: 0;">
+                    <h1 style="margin:0; font-size: 1.8rem; color: #2c3e50;">Office Supply & Medicines</h1>
+                </div>
+
+                <div class="filter-bar">
+                    <select id="categoryFilter" class="cat-filter" onchange="filterTable()">
+                        <option value="All">All Categories</option>
+                        <option value="Office Supplies">Office Supplies</option>
+                        <option value="Consumable">Medicines</option>
+                    </select>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search by item name..." onkeyup="filterTable()">
+                </div>
+
+                <button onclick="openModal('addSupplyModal')" class="btn-action btn-red-theme">
+                    <i class="fas fa-plus"></i> Add Item
+                </button>
+            </div>
+
+            <div class="tabs-wrapper">
+                <button class="tab-btn active" id="btn-tab-unassigned" onclick="openTab('tab-unassigned', this)">
+                    <i class="fas fa-box-open"></i> Unassigned / General
+                </button>
+                {% for room in rooms %}
+                <button class="tab-btn" id="btn-tab-{{ room.id }}" onclick="openTab('tab-{{ room.id }}', this)">
+                    <i class="fas fa-door-open"></i> {{ room.name }}
+                </button>
+                {% endfor %}
+            </div>
+
+            <div id="tab-unassigned" class="tab-content active">
+                <table class="asset-table">
+                    <thead><tr><th>Item Info</th><th>Available Qty</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        {% for item in unassigned_tools %}
+                        {% if not item.room %}
+                        <tr class="item-row" data-category="{% if item.category == 'Consumable' or item.category == 'Medicines' %}Consumable{% else %}{{ item.category }}{% endif %}" data-name="{{ item.name|lower }}">
+                            <td>
+                                <span class="badge-cat {% if item.category == 'Consumable' or item.category == 'Medicines' %}badge-med{% endif %}">
+                                    {% if item.category == 'Consumable' or item.category == 'Medicines' %}Medicines{% else %}{{ item.category }}{% endif %}
+                                </span><br>
+                                <strong>{{ item.name }}</strong>
+                            </td>
+                            <td style="color: #27ae60; font-weight: 600; font-size: 1.1rem;">
+                                {{ item.quantity }} <span style="font-size: 0.85rem; color: #7f8c8d; font-weight: 500; text-transform: uppercase;">{{ item.unit_of_measure|default:"pcs" }}</span>
+                            </td>
+                            <td>
+                                <div class="btn-action-group">
+                                    <button type="button" class="btn-icon btn-edit-style" onclick="openModal('editSupplyModal{{ item.id }}')">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button type="button" class="btn-icon btn-delete-style" onclick="openModal('deleteSupplyModal{{ item.id }}')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <div id="editSupplyModal{{ item.id }}" class="modal-overlay">
+                            <div class="modal-content">
+                                <button class="close-modal" onclick="closeModal('editSupplyModal{{ item.id }}')">×</button>
+                                <h3 style="margin-top:0; color:#2c3e50;">Edit Item</h3>
+                                <form action="{% url 'edit_tool' item.id %}" method="POST">
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                        <label>Category</label>
+                                        <select class="form-control" disabled>
+                                            <option value="Office Supplies" {% if item.category == 'Office Supplies' %}selected{% endif %}>Office Supplies</option>
+                                            <option value="Consumable" {% if item.category == 'Consumable' or item.category == 'Medicines' %}selected{% endif %}>Medicines</option>
+                                        </select>
+                                        <input type="hidden" name="category" value="{{ item.category }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Item Name</label>
+                                        <input type="text" name="name" class="form-control" value="{{ item.name }}" placeholder="e.g. Paracetamol" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>Unit / Packaging</label>
+                                        <select id="edit_{{ item.id }}_uom_select" 
+                                                name="{% if item.unit_of_measure == 'pcs' or item.unit_of_measure == 'box' or item.unit_of_measure == 'ream' or item.unit_of_measure == 'pack' or item.unit_of_measure == 'roll' or item.unit_of_measure == 'bottle' or item.unit_of_measure == 'set' %}unit_of_measure{% endif %}" 
+                                                class="form-control" 
+                                                onchange="checkCustomUOM('edit_{{ item.id }}')" required>
+                                            <option value="pcs" {% if item.unit_of_measure == 'pcs' %}selected{% endif %}>Pieces / Individual</option>
+                                            <option value="box" {% if item.unit_of_measure == 'box' %}selected{% endif %}>Box(es)</option>
+                                            <option value="ream" {% if item.unit_of_measure == 'ream' %}selected{% endif %}>Ream(s)</option>
+                                            <option value="pack" {% if item.unit_of_measure == 'pack' %}selected{% endif %}>Pack(s)</option>
+                                            <option value="roll" {% if item.unit_of_measure == 'roll' %}selected{% endif %}>Roll(s)</option>
+                                            <option value="bottle" {% if item.unit_of_measure == 'bottle' %}selected{% endif %}>Bottle(s)</option>
+                                            <option value="set" {% if item.unit_of_measure == 'set' %}selected{% endif %}>Set(s)</option>
+                                            <option value="Custom" {% if item.unit_of_measure != 'pcs' and item.unit_of_measure != 'box' and item.unit_of_measure != 'ream' and item.unit_of_measure != 'pack' and item.unit_of_measure != 'roll' and item.unit_of_measure != 'bottle' and item.unit_of_measure != 'set' %}selected{% endif %} style="color: #0056b3; font-weight: 500;">+ Type Custom Name...</option>
+                                        </select>
+                                        
+                                        <input type="text" id="edit_{{ item.id }}_uom_input" 
+                                               name="{% if item.unit_of_measure != 'pcs' and item.unit_of_measure != 'box' and item.unit_of_measure != 'ream' and item.unit_of_measure != 'pack' and item.unit_of_measure != 'roll' and item.unit_of_measure != 'bottle' and item.unit_of_measure != 'set' %}unit_of_measure{% endif %}" 
+                                               class="form-control" 
+                                               value="{% if item.unit_of_measure != 'pcs' and item.unit_of_measure != 'box' and item.unit_of_measure != 'ream' and item.unit_of_measure != 'pack' and item.unit_of_measure != 'roll' and item.unit_of_measure != 'bottle' and item.unit_of_measure != 'set' %}{{ item.unit_of_measure }}{% endif %}" 
+                                               placeholder="Type custom packaging..." 
+                                               style="display:{% if item.unit_of_measure != 'pcs' and item.unit_of_measure != 'box' and item.unit_of_measure != 'ream' and item.unit_of_measure != 'pack' and item.unit_of_measure != 'roll' and item.unit_of_measure != 'bottle' and item.unit_of_measure != 'set' %}block{% else %}none{% endif %}; margin-top:10px;">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>Quantity</label>
+                                        <input type="number" name="quantity" class="form-control" value="{{ item.quantity }}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Storage Room (Optional)</label>
+                                        <select name="room" class="form-control">
+                                            <option value="">-- Unassigned --</option>
+                                            {% for r in rooms %}
+                                            <option value="{{ r.id }}" {% if item.room and item.room.id == r.id %}selected{% endif %}>{{ r.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="modal-submit">Save Changes</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div id="deleteSupplyModal{{ item.id }}" class="modal-overlay">
+                            <div class="modal-content" style="text-align: center;">
+                                <div style="text-align: right;">
+                                    <button class="close-modal" onclick="closeModal('deleteSupplyModal{{ item.id }}')">×</button>
+                                </div>
+                                <i class="fas fa-trash-alt" style="font-size: 4rem; color: #ff5757; margin-bottom: 20px;"></i>
+                                <h3 style="margin-top:0; color:#2c3e50;">Are you sure?</h3>
+                                <p style="color:#7f8c8d; margin-bottom:20px;">You are about to delete <strong style="color: #ff5757;">{{ item.name }}</strong>.</p>
+                                <div style="display: flex; gap: 10px; justify-content: center;">
+                                    <button type="button" class="btn-cancel" onclick="closeModal('deleteSupplyModal{{ item.id }}')">Cancel</button>
+                                    <form action="{% url 'delete_tool' item.id %}" method="POST" style="margin: 0;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-delete-confirm">Yes, Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% for room in rooms %}
+            <div id="tab-{{ room.id }}" class="tab-content">
+                <h3 style="margin-top:0; color:#2c3e50; border-bottom:2px solid #fff5f5; padding-bottom:10px;">
+                    Inventory for {{ room.name }}
+                </h3>
+                <table class="asset-table">
+                    <thead><tr><th>Item Info</th><th>Available Qty</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        {% for item in unassigned_tools %}
+                        {% if item.room and item.room.id == room.id %}
+                        <tr class="item-row" data-category="{% if item.category == 'Consumable' or item.category == 'Medicines' %}Consumable{% else %}{{ item.category }}{% endif %}" data-name="{{ item.name|lower }}">
+                            <td>
+                                <span class="badge-cat {% if item.category == 'Consumable' or item.category == 'Medicines' %}badge-med{% endif %}">
+                                    {% if item.category == 'Consumable' or item.category == 'Medicines' %}Medicines{% else %}{{ item.category }}{% endif %}
+                                </span><br>
+                                <strong>{{ item.name }}</strong>
+                            </td>
+                            <td style="color: #27ae60; font-weight: 600; font-size: 1.1rem;">
+                                {{ item.quantity }} <span style="font-size: 0.85rem; color: #7f8c8d; font-weight: 500; text-transform: uppercase;">{{ item.unit_of_measure|default:"pcs" }}</span>
+                            </td>
+                            <td>
+                                <div class="btn-action-group">
+                                    <button type="button" class="btn-icon btn-edit-style" onclick="openModal('editSupplyModal{{ item.id }}')">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button type="button" class="btn-icon btn-delete-style" onclick="openModal('deleteSupplyModal{{ item.id }}')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <div id="editSupplyModal{{ item.id }}" class="modal-overlay">
+                            <div class="modal-content">
+                                <button class="close-modal" onclick="closeModal('editSupplyModal{{ item.id }}')">×</button>
+                                <h3 style="margin-top:0; color:#2c3e50;">Edit Item</h3>
+                                <form action="{% url 'edit_tool' item.id %}" method="POST">
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                        <label>Category</label>
+                                        <select class="form-control" disabled>
+                                            <option value="Office Supplies" {% if item.category == 'Office Supplies' %}selected{% endif %}>Office Supplies</option>
+                                            <option value="Consumable" {% if item.category == 'Consumable' or item.category == 'Medicines' %}selected{% endif %}>Medicines</option>
+                                        </select>
+                                        <input type="hidden" name="category" value="{{ item.category }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Item Name</label>
+                                        <input type="text" name="name" class="form-control" value="{{ item.name }}" placeholder="e.g. Paracetamol" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>Unit / Packaging</label>
+                                        <select id="edit_{{ item.id }}_uom_select" 
+                                                name="{% if item.unit_of_measure == 'pcs' or item.unit_of_measure == 'box' or item.unit_of_measure == 'ream' or item.unit_of_measure == 'pack' or item.unit_of_measure == 'roll' or item.unit_of_measure == 'bottle' or item.unit_of_measure == 'set' %}unit_of_measure{% endif %}" 
+                                                class="form-control" 
+                                                onchange="checkCustomUOM('edit_{{ item.id }}')" required>
+                                            <option value="pcs" {% if item.unit_of_measure == 'pcs' %}selected{% endif %}>Pieces / Individual</option>
+                                            <option value="box" {% if item.unit_of_measure == 'box' %}selected{% endif %}>Box(es)</option>
+                                            <option value="ream" {% if item.unit_of_measure == 'ream' %}selected{% endif %}>Ream(s)</option>
+                                            <option value="pack" {% if item.unit_of_measure == 'pack' %}selected{% endif %}>Pack(s)</option>
+                                            <option value="roll" {% if item.unit_of_measure == 'roll' %}selected{% endif %}>Roll(s)</option>
+                                            <option value="bottle" {% if item.unit_of_measure == 'bottle' %}selected{% endif %}>Bottle(s)</option>
+                                            <option value="set" {% if item.unit_of_measure == 'set' %}selected{% endif %}>Set(s)</option>
+                                            <option value="Custom" {% if item.unit_of_measure != 'pcs' and item.unit_of_measure != 'box' and item.unit_of_measure != 'ream' and item.unit_of_measure != 'pack' and item.unit_of_measure != 'roll' and item.unit_of_measure != 'bottle' and item.unit_of_measure != 'set' %}selected{% endif %} style="color: #0056b3; font-weight: 500;">+ Type Custom Name...</option>
+                                        </select>
+                                        
+                                        <input type="text" id="edit_{{ item.id }}_uom_input" 
+                                               name="{% if item.unit_of_measure != 'pcs' and item.unit_of_measure != 'box' and item.unit_of_measure != 'ream' and item.unit_of_measure != 'pack' and item.unit_of_measure != 'roll' and item.unit_of_measure != 'bottle' and item.unit_of_measure != 'set' %}unit_of_measure{% endif %}" 
+                                               class="form-control" 
+                                               value="{% if item.unit_of_measure != 'pcs' and item.unit_of_measure != 'box' and item.unit_of_measure != 'ream' and item.unit_of_measure != 'pack' and item.unit_of_measure != 'roll' and item.unit_of_measure != 'bottle' and item.unit_of_measure != 'set' %}{{ item.unit_of_measure }}{% endif %}" 
+                                               placeholder="Type custom packaging..." 
+                                               style="display:{% if item.unit_of_measure != 'pcs' and item.unit_of_measure != 'box' and item.unit_of_measure != 'ream' and item.unit_of_measure != 'pack' and item.unit_of_measure != 'roll' and item.unit_of_measure != 'bottle' and item.unit_of_measure != 'set' %}block{% else %}none{% endif %}; margin-top:10px;">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Quantity</label>
+                                        <input type="number" name="quantity" class="form-control" value="{{ item.quantity }}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Storage Room (Optional)</label>
+                                        <select name="room" class="form-control">
+                                            <option value="">-- Unassigned --</option>
+                                            {% for r in rooms %}
+                                            <option value="{{ r.id }}" {% if item.room and item.room.id == r.id %}selected{% endif %}>{{ r.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="modal-submit">Save Changes</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div id="deleteSupplyModal{{ item.id }}" class="modal-overlay">
+                            <div class="modal-content" style="text-align: center;">
+                                <div style="text-align: right;">
+                                    <button class="close-modal" onclick="closeModal('deleteSupplyModal{{ item.id }}')">×</button>
+                                </div>
+                                <i class="fas fa-trash-alt" style="font-size: 4rem; color: #ff5757; margin-bottom: 20px;"></i>
+                                <h3 style="margin-top:0; color:#2c3e50;">Are you sure?</h3>
+                                <p style="color:#7f8c8d; margin-bottom:20px;">You are about to delete <strong style="color: #ff5757;">{{ item.name }}</strong>.</p>
+                                <div style="display: flex; gap: 10px; justify-content: center;">
+                                    <button type="button" class="btn-cancel" onclick="closeModal('deleteSupplyModal{{ item.id }}')">Cancel</button>
+                                    <form action="{% url 'delete_tool' item.id %}" method="POST" style="margin: 0;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-delete-confirm">Yes, Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endfor %}
+
+        </div>
+    </main>
+
+    <div id="addSupplyModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('addSupplyModal')">×</button>
+            <h3 style="margin-top:0; color:#ff5757;">Add New Item</h3>
+            <form action="{% url 'add_tool' %}" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Assign to Room</label>
+                    <select name="room" id="add_room_select" class="form-control">
+                        <option value="">-- General Storage (Unassigned) --</option>
+                        {% for r in rooms %}
+                        <option value="{{ r.id }}">{{ r.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="add_category" name="category" class="form-control" onchange="loadSupplyNames('add')" required>
+                        <option value="" disabled selected>-- Select Category --</option>
+                        <option value="Office Supplies">Office Supplies</option>
+                        <option value="Consumable">Medicines</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Item Name</label>
+                    <select id="add_name_select" name="name" class="form-control" onchange="checkCustomName('add')" required>
+                        <option value="" disabled selected>-- Select Category First --</option>
+                    </select>
+                    <input type="text" id="add_name_input" class="form-control" placeholder="Type custom item name..." style="display:none; margin-top:10px;">
+                </div>
+                
+                <div class="form-group">
+                    <label>Unit / Packaging</label>
+                    <select id="add_uom_select" name="unit_of_measure" class="form-control" onchange="checkCustomUOM('add')" required>
+                        <option value="pcs" selected>Pieces / Individual</option>
+                        <option value="box">Box(es)</option>
+                        <option value="ream">Ream(s)</option>
+                        <option value="pack">Pack(s)</option>
+                        <option value="roll">Roll(s)</option>
+                        <option value="bottle">Bottle(s)</option>
+                        <option value="set">Set(s)</option>
+                        <option value="Custom" style="color: #0056b3; font-weight: 500;">+ Type Custom Name...</option>
+                    </select>
+                    <input type="text" id="add_uom_input" class="form-control" placeholder="Type custom packaging..." style="display:none; margin-top:10px;">
+                </div>
+
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" name="quantity" class="form-control" placeholder="0" required>
+                </div>
+                <button type="submit" class="modal-submit">Add Item</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- TAB & FILTER LOGIC ---
+        function openTab(tabName, btnElement) {
+            var contents = document.getElementsByClassName("tab-content");
+            for (var i = 0; i < contents.length; i++) {
+                contents[i].classList.remove("active");
+                contents[i].style.display = "none";
+            }
+            var btns = document.getElementsByClassName("tab-btn");
+            for (var i = 0; i < btns.length; i++) {
+                btns[i].classList.remove("active");
+            }
+            
+            var selectedTab = document.getElementById(tabName);
+            selectedTab.classList.add("active");
+            selectedTab.style.display = "block";
+            
+            if(btnElement) btnElement.classList.add("active");
+            localStorage.setItem('activeSupplyTab', tabName);
+            filterTable();
+        }
+
+        window.onload = function() {
+            var activeTab = localStorage.getItem('activeSupplyTab');
+            if (activeTab && document.getElementById(activeTab)) {
+                openTab(activeTab, document.getElementById('btn-' + activeTab)); 
+            } else {
+                openTab('tab-unassigned', document.getElementById('btn-tab-unassigned')); 
+            }
+        };
+
+        function filterTable() {
+            var input = document.getElementById("searchInput");
+            var filter = input.value.toLowerCase().trim(); 
+            
+            var categorySelect = document.getElementById("categoryFilter");
+            var categoryValue = categorySelect.value;
+
+            var activeTab = document.querySelector('.tab-content.active');
+            if (!activeTab) return;
+
+            var rows = activeTab.getElementsByClassName("item-row");
+
+            for (var i = 0; i < rows.length; i++) {
+                var rowName = rows[i].getAttribute("data-name");
+                var rowCat = rows[i].getAttribute("data-category");
+
+                var nameMatch = rowName.indexOf(filter) > -1;
+                var catMatch = (categoryValue === "All") || (rowCat === categoryValue);
+
+                if (nameMatch && catMatch) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+
+        // --- DROPDOWN LOGIC ---
+        const supplyPresets = {
+            "Office Supplies": [
+                "Bond Paper (A4)", "Bond Paper (Long)", "Pencil", "Ballpen (Black)", "Ballpen (Blue)", 
+                "Eraser", "Sharpener", "Folder (Long)", "Folder (Short)", "Stapler", "Staple Wire", 
+                "Paper Clip", "Highlighter", "Marker"
+            ],
+            "Consumable": [
+                "Paracetamol", "Ibuprofen", "Mefenamic Acid", "Loperamide", "Antacid", 
+                "Band-Aid", "Betadine", "Alcohol (70%)", "Cotton", "Gauze Pad", "White Flower"
+            ]
+        };
+
+        function loadSupplyNames(prefix) {
+            const catSelect = document.getElementById(prefix + '_category');
+            const nameSelect = document.getElementById(prefix + '_name_select');
+            const nameInput = document.getElementById(prefix + '_name_input');
+            
+            const category = catSelect.value;
+            const items = supplyPresets[category] || [];
+            
+            nameSelect.innerHTML = '<option value="" disabled selected>-- Select Item --</option>';
+
+            items.forEach(item => {
+                let opt = document.createElement('option');
+                opt.value = item;
+                opt.innerHTML = item;
+                nameSelect.appendChild(opt);
+            });
+            
+            let customOpt = document.createElement('option');
+            customOpt.value = 'Custom';
+            customOpt.innerHTML = '+ Type Custom Name...';
+            nameSelect.appendChild(customOpt);
+
+            nameSelect.name = 'name';
+            nameInput.name = '';
+            nameInput.style.display = 'none';
+            nameInput.required = false;
+        }
+
+        function checkCustomName(prefix) {
+            const nameSelect = document.getElementById(prefix + '_name_select');
+            const nameInput = document.getElementById(prefix + '_name_input');
+            
+            if (nameSelect.value === 'Custom') {
+                nameSelect.name = ''; 
+                nameInput.name = 'name'; 
+                nameInput.style.display = 'block';
+                nameInput.required = true;
+                nameInput.value = ''; 
+                nameInput.focus();
+            } else {
+                nameSelect.name = 'name'; 
+                nameInput.name = ''; 
+                nameInput.style.display = 'none';
+                nameInput.required = false;
+            }
+        }
+
+        function checkCustomUOM(prefix) {
+            const uomSelect = document.getElementById(prefix + '_uom_select');
+            const uomInput = document.getElementById(prefix + '_uom_input');
+            
+            if (uomSelect.value === 'Custom') {
+                uomSelect.name = ''; 
+                uomInput.name = 'unit_of_measure'; 
+                uomInput.style.display = 'block';
+                uomInput.required = true;
+                uomInput.focus();
+            } else {
+                uomSelect.name = 'unit_of_measure'; 
+                uomInput.name = ''; 
+                uomInput.style.display = 'none';
+                uomInput.required = false;
+            }
+        }
+
+        // --- GENERAL MODAL LOGIC ---
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+            if (modalId === 'addSupplyModal') {
+                let activeTabId = localStorage.getItem('activeSupplyTab');
+                let addRoomSelect = document.getElementById('add_room_select');
+                if (activeTabId && activeTabId.startsWith('tab-') && activeTabId !== 'tab-unassigned') {
+                    let roomId = activeTabId.replace('tab-', '');
+                    addRoomSelect.value = roomId;
+                } else {
+                    addRoomSelect.value = '';
+                }
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

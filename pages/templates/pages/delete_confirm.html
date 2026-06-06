@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Confirm Delete</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; }
+        .box { background: white; padding: 40px; border-radius: 10px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .btn { padding: 10px 20px; border-radius: 5px; text-decoration: none; color: white; font-weight: bold; margin: 0 10px; border: none; cursor: pointer; }
+        .btn-red { background: #e74c3c; }
+        .btn-grey { background: #95a5a6; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2 style="color:#e74c3c;">Delete Asset?</h2>
+        <p>Are you sure you want to delete <strong>{{ item.name }}</strong>?</p>
+        <p>This action cannot be undone.</p>
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-red">Yes, Delete</button>
+            <a href="{% url 'manage_tools' %}" class="btn btn-grey">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>

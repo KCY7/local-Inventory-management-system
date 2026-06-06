@@ -1,0 +1,14 @@
+# Virtual Environments
+.venv/
+venv/
+env/
+
+# Django Local Database
+db.sqlite3
+
+# Python Cache
+__pycache__/
+*.pyc
+
+# VS Code Settings
+.vscode/

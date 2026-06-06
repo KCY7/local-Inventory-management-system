@@ -1,0 +1,1123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Portal | Holy Child College of Davao del Norte</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* --- GLOBAL RESET --- */
+        * { box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; color: #333; display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- SIDEBAR --- */
+        .sidebar { width: 260px; background-color: #2c3e50; color: white; display: flex; flex-direction: column; box-shadow: 4px 0 15px rgba(0,0,0,0.05); flex-shrink: 0; z-index: 100; }
+        .sidebar-header { padding: 25px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; }
+        .sidebar-header img { width: 70px; height: auto; margin: 0 0 10px 0; border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.2); display: block; }
+        .sidebar-header h2 { font-size: 0.85rem; margin: 0; padding: 0; letter-spacing: 1px; line-height: 1.5; font-weight: 600; opacity: 0.9; }
+        .sidebar-menu { flex-grow: 1; padding: 20px 0; overflow-y: auto; }
+        .menu-item { padding: 15px 25px; display: flex; align-items: center; gap: 12px; color: rgba(255,255,255,0.7); text-decoration: none; transition: all 0.2s ease-in-out; font-size: 0.9rem; border-left: 4px solid transparent; }
+        .menu-item:hover, .menu-item.active { background-color: rgba(255,255,255,0.05); color: white; border-left-color: #ff5757; }
+        .menu-item i { width: 20px; text-align: center; }
+        .sidebar-footer { padding: 20px; background-color: rgba(0,0,0,0.15); border-top: 1px solid rgba(255,255,255,0.05); }
+        .logout-btn { background-color: #ff5757; color: white; padding: 12px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; font-weight: 600; box-shadow: 0 4px 10px rgba(255, 87, 87, 0.3); }
+        .logout-btn:hover { background-color: #e04a4a; transform: translateY(-1px); }
+        
+        /* --- MAIN CONTENT --- */
+        .main-content { flex-grow: 1; overflow-y: auto; padding: 30px 40px; }
+        .content-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; }
+        .header-title h1 { margin: 0; font-size: 2rem; color: #2c3e50; font-weight: 700; letter-spacing: -0.5px; }
+        .header-title p { margin: 5px 0 0; color: #7f8c8d; font-size: 0.95rem; }
+        .header-actions-container { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+        .header-actions { display: flex; gap: 10px; }
+        #liveClock { font-size: 1rem; font-weight: 600; background: white; padding: 8px 20px; border-radius: 50px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #e0e0e0; display: flex; align-items: center; gap: 10px; color: #555; }
+        .fa-calendar-day { color: #ff5757; }
+
+        /* BUTTONS */
+        .btn-action { padding: 10px 20px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; transition: all 0.2s; border: none; cursor: pointer; text-decoration: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .btn-red { background-color: #ff5757; color: white; }
+        .btn-white { background-color: white; color: #2c3e50; border: 1px solid #ddd; }
+
+        /* DASHBOARD GRID */
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; margin-bottom: 30px; align-items: stretch; }
+        .card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.03); height: 100%; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .card-active { border-left: 6px solid #ff5757; justify-content: center; } 
+        .card-alert { border-left: 6px solid #c0392b; justify-content: flex-start; } 
+        .card h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #95a5a6; margin: 0 0 15px 0; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .big-number { font-size: 3.5rem; font-weight: 700; color: #2c3e50; line-height: 1; margin-bottom: 5px; }
+        .big-number span { font-size: 1.2rem; color: #bdc3c7; font-weight: 500; }
+        .progress-container { background-color: #f0f2f5; border-radius: 10px; height: 8px; width: 100%; margin-top: 15px; overflow: hidden; }
+        .progress-bar { background: linear-gradient(90deg, #ff5757, #ff8a8a); height: 100%; width: var(--width, 0%); border-radius: 10px; transition: width 1s ease-in-out; }
+
+        /* ALERT ITEMS */
+        .alert-content-wrapper { flex-grow: 1; overflow-y: auto; padding-right: 5px; }
+        .alert-content-wrapper::-webkit-scrollbar { width: 5px; }
+        .alert-content-wrapper::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 4px; }
+        .alert-content-wrapper::-webkit-scrollbar-thumb { background: #ff5757; border-radius: 4px; }
+        .alert-section { margin-bottom: 15px; }
+        .alert-section h4 { font-size: 0.8rem; color: #c0392b; margin: 0 0 8px 0; font-weight: 700; display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .single-alert-item { background: #fff5f5; padding: 10px 12px; border-radius: 8px; border: 1px solid #ffebeb; font-size: 0.85rem; color: #555; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .summary-box { background: #fff; border: 1px dashed #c0392b; border-radius: 8px; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; color: #c0392b; font-weight: 500; font-size: 0.85rem; }
+        .btn-view-all { background: #c0392b; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 600; transition: 0.2s; }
+        .btn-view-all:hover { background: #a93226; }
+        .btn-update-small { background: none; border: none; color: #bdc3c7; cursor: pointer; font-size: 0.9rem; }
+        .btn-update-small:hover { color: #ff5757; }
+        .missing-tag { background: #fff; color: #ff5757; border: 1px solid #ff5757; padding: 1px 5px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; margin-left: 5px; }
+
+        /* ROOM GRID */
+        .section-heading { font-size: 1.1rem; color: #2c3e50; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .room-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .room-card { background: white; padding: 25px 20px; border-radius: 16px; text-align: center; transition: 0.3s; border: 1px solid transparent; cursor: pointer; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .room-card:hover { transform: translateY(-5px); border-color: #ff5757; }
+        .room-icon { font-size: 2.2rem; color: #dfe4ea; margin-bottom: 10px; }
+        .room-count { font-size: 1.6rem; font-weight: 700; color: #2c3e50; }
+        .room-label { font-size: 0.85rem; color: #7f8c8d; font-weight: 500; }
+        .room-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; opacity: 0; transform: translateY(-10px); transition: all 0.3s ease; z-index: 10; }
+        .room-card:hover .room-actions { opacity: 1; transform: translateY(0); }
+        .action-btn-small { width: 28px; height: 28px; border-radius: 8px; border: 1px solid #eee; background: white; color: #555; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+        .action-btn-small:hover { border-color: #ff5757; color: #ff5757; background: #fff5f5; }
+
+        /* MODALS */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(44, 62, 80, 0.7); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-overlay.show { display: flex; }
+        .modal-overlay.top-layer { z-index: 2000 !important; }
+        .modal-overlay.super-layer { z-index: 3000 !important; }
+        .modal-content { background: white; width: 95%; max-width: 800px; max-height: 85vh; border-radius: 16px; padding: 0; overflow-y: auto; scrollbar-width: none; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.25); animation: modalPop 0.3s ease; }
+        .modal-content::-webkit-scrollbar { display: none; }
+        @keyframes modalPop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-header { background: #2c3e50; color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #ff5757; position: sticky; top: 0; z-index: 5; }
+        .modal-body { padding: 30px; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; color: rgba(255,255,255,0.7); cursor: pointer; transition: 0.2s; }
+        .close-btn:hover { color: #ff5757; }
+
+        /* TABLES */
+        .pc-table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #eee; border-radius: 10px; overflow: hidden; margin-top: 5px; }
+        .pc-table th { background: #ff5757; color: white; text-align: left; padding: 15px; font-size: 0.8rem; font-weight: 600; }
+        .pc-table td { padding: 15px; border-bottom: 1px solid #f0f0f0; background: white; font-size: 0.9rem; color: #555; vertical-align: middle; }
+        .text-break { word-break: break-word; overflow-wrap: break-word; white-space: normal; max-width: 250px; }
+        .specs-list { font-size: 0.8rem; line-height: 1.4; color: #555; }
+        .specs-list strong { color: #2c3e50; }
+
+        /* FORM STYLES */
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .full-width { grid-column: span 2; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: #555; margin-bottom: 5px; }
+        .form-input, .form-select, textarea.form-input { width: 100%; padding: 12px 15px; border: 1px solid #dfe6e9; border-radius: 8px; font-family: inherit; font-size: 0.95rem; color: #2c3e50; background: #fdfdfd; transition: all 0.2s; }
+        .btn-submit { background: #ff5757; color: white; width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 10px; font-size: 1rem; }
+        
+        .input-group { display: flex; gap: 8px; align-items: stretch; margin-bottom: 5px; }
+        .input-group .form-input-name { flex: 2; margin: 0; padding: 12px 15px; border: 1px solid #dfe6e9; border-radius: 8px; font-family: inherit; font-size: 0.95rem; background: #fdfdfd; }
+        .input-group .form-input-sn { flex: 1.2; margin: 0; padding: 12px 15px; border: 1px dashed #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.85rem; background: #f8fafc; }
+        .input-group .form-input-sn:focus { border-style: solid; border-color: #ff5757; outline: none; background: white; }
+        .input-group .btn-browse { padding: 0 15px; background: #e2e8f0; color: #2c3e50; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: 600; font-size: 0.85rem; white-space: nowrap; display:flex; align-items:center; gap:6px; }
+        .input-group .btn-browse:hover { background: #cbd5e1; border-color: #94a3b8; }
+        .input-group .btn-remove-slot { padding: 0 12px; background: #fff5f5; color: #ff5757; border: 1px solid #ff5757; border-radius: 8px; cursor: pointer; transition: 0.2s; display:flex; align-items:center; justify-content: center;}
+        .input-group .btn-remove-slot:hover { background: #ff5757; color: white; }
+
+        /* --- NEW: COMPONENT ACTION FOOTER (Replaces old Select boxes) --- */
+        .component-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; margin-top: 6px; padding: 0 4px; background: #fff; border-radius: 4px; }
+        .action-select-inline { border: none; background: transparent; color: #7f8c8d; font-weight: 600; cursor: pointer; outline: none; appearance: none; padding-right: 15px; background-image: url('data:image/svg+xml;utf8,<svg fill="%237f8c8d" height="14" viewBox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right center; transition: color 0.2s;}
+        .action-select-inline:hover, .action-select-inline:focus { color: #2c3e50; background-image: url('data:image/svg+xml;utf8,<svg fill="%232c3e50" height="14" viewBox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); }
+        .action-select-inline option { color: #333; }
+        .btn-clear-field { border: none; background: transparent; color: #ff5757; cursor: pointer; transition: 0.2s; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+        .btn-clear-field:hover { background: #ffebeb; }
+
+        .accessory-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .acc-tile { border: 1px solid #eee; border-radius: 10px; padding: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; transition: 0.2s; }
+        .acc-tile:hover { background: #fff5f5; border-color: #ff5757; }
+        .acc-tile input { accent-color: #ff5757; }
+        .btn-table-action { background: #fff; border: 1px solid #ddd; color: #555; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; margin-left: 5px; }
+
+        /* --- TOAST NOTIFICATIONS --- */
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { background: white; border-left: 5px solid #ff5757; box-shadow: 0 5px 15px rgba(0,0,0,0.15); padding: 15px 20px; border-radius: 8px; font-size: 0.9rem; color: #2c3e50; font-weight: 500; display: flex; align-items: center; gap: 12px; animation: slideInRight 0.3s ease-out forwards, fadeOut 0.5s ease-out 4.5s forwards; }
+        .toast-error { border-left-color: #c0392b; }
+        .toast-error i { color: #c0392b; font-size: 1.2rem; }
+        .toast-success { border-left-color: #27ae60; }
+        .toast-success i { color: #27ae60; font-size: 1.2rem; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+    </style>
+</head>
+<body>
+
+    {% if messages %}
+        <div class="toast-container" id="toast-container">
+            {% for message in messages %}
+                <div class="toast {% if message.tags %}toast-{{ message.tags }}{% endif %}">
+                    {% if message.tags == 'error' %}<i class="fas fa-exclamation-circle"></i>
+                    {% else %}<i class="fas fa-check-circle"></i>{% endif %}
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+        <script>
+            setTimeout(() => {
+                const toastBox = document.getElementById('toast-container');
+                if(toastBox) toastBox.remove();
+            }, 5000);
+        </script>
+    {% endif %}
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="{% static 'images/holychild.png' %}" alt="HCC Logo">
+            <h2>HOLY CHILD COLLEGE OF DAVAO DEL NORTE<br>INVENTORY SYSTEM</h2>
+        </div>
+        <nav class="sidebar-menu">
+            <a href="{% url 'dashboard' %}" class="menu-item active"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="{% url 'manage_laptops' %}" class="menu-item"><i class="fas fa-laptop"></i> Laptop Dashboard</a>
+            <a href="{% url 'manage_office_supplies' %}" class="menu-item"><i class="fas fa-paperclip"></i> Office Supplies</a>
+            <a href="{% url 'manage_tools' %}" class="menu-item"><i class="fas fa-tools"></i> Manage Assets</a>
+            <a href="{% url 'master_list' %}" class="menu-item"><i class="fas fa-database"></i> Full Database</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="content-header">
+            <div class="header-title">
+                <h1>System Overview</h1>
+                <p>Holy Child College of Davao del Norte Inventory System</p>
+            </div>
+            <div class="header-actions-container">
+                <div id="liveClock"><i class="fas fa-calendar-day"></i><span id="clockDisplay"></span></div>
+                <div class="header-actions">
+                    <button onclick="openAddModal()" class="btn-action btn-red"><i class="fas fa-plus"></i> Add New Unit</button>
+                    <button onclick="openAddRoomModal()" class="btn-action btn-white"><i class="fas fa-door-open"></i> Add Room</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="card card-active">
+                <h3><i class="fas fa-server"></i> System Health</h3>
+                <div style="flex-grow:1; display:flex; flex-direction:column; justify-content:center;">
+                    <div class="big-number">{{ active }} <span>/ {{ total }}</span></div>
+                    <div class="status-text" style="color:#7f8c8d; font-size: 0.85rem;">Active Working Units</div>
+                    <div class="progress-container"><div class="progress-bar" style="--width: {{ percentage }}%;"></div></div>
+                </div>
+            </div>
+
+            <div class="card card-alert">
+                <h3><i class="fas fa-exclamation-circle"></i> Attention Required</h3>
+                <div class="alert-content-wrapper">
+                    <div class="alert-section">
+                        <h4><i class="fas fa-times-circle"></i> Defective Units</h4>
+                        {% if defective|length > 1 %}
+                            <div class="summary-box">
+                                <span><i class="fas fa-exclamation-circle"></i> {{ defective|length }} Units Reported</span>
+                                <button class="btn-view-all" onclick="openDefectiveListModal()">View List</button>
+                            </div>
+                        {% else %}
+                            <ul class="alert-list">
+                                {% for pc in defective %}
+                                <li class="single-alert-item">
+                                    <div><strong>{{ pc.custom_id }}</strong> <small>({{ pc.room.name }})</small></div>
+                                    <button class="btn-update-small" onclick="openUpdateModal(this)" 
+                                        data-id="{{ pc.id }}" data-custom-id="{{ pc.custom_id }}" data-room="{{ pc.room.id }}" data-status="{{ pc.status }}" data-remarks="{{ pc.remarks|default_if_none:'' }}"
+                                        data-processor="{{ pc.processor }}" data-processor-sn="{{ pc.processor_sn|default_if_none:'' }}" 
+                                        data-ram="{{ pc.ram }}" data-ram-sn="{{ pc.ram_sn|default_if_none:'' }}" 
+                                        data-ram2="{{ pc.ram_2|default_if_none:'' }}" data-ram2sn="{{ pc.ram_2_sn|default_if_none:'' }}" 
+                                        data-ram3="{{ pc.ram_3|default_if_none:'' }}" data-ram3sn="{{ pc.ram_3_sn|default_if_none:'' }}" 
+                                        data-ram4="{{ pc.ram_4|default_if_none:'' }}" data-ram4sn="{{ pc.ram_4_sn|default_if_none:'' }}" 
+                                        data-storage="{{ pc.storage }}" data-storage-sn="{{ pc.storage_sn|default_if_none:'' }}" 
+                                        data-storage2="{{ pc.storage_2|default_if_none:'' }}" data-storage2sn="{{ pc.storage_2_sn|default_if_none:'' }}" 
+                                        data-storage3="{{ pc.storage_3|default_if_none:'' }}" data-storage3sn="{{ pc.storage_3_sn|default_if_none:'' }}" 
+                                        data-storage4="{{ pc.storage_4|default_if_none:'' }}" data-storage4sn="{{ pc.storage_4_sn|default_if_none:'' }}" 
+                                        data-isigpu="{{ pc.is_igpu|yesno:'true,false' }}"
+                                        data-graphics="{{ pc.graphics_card }}" data-graphics-sn="{{ pc.graphics_card_sn|default_if_none:'' }}" 
+                                        data-motherboard="{{ pc.motherboard|default_if_none:'' }}" data-motherboard-sn="{{ pc.motherboard_sn|default_if_none:'' }}" 
+                                        data-psu="{{ pc.psu|default_if_none:'' }}" data-psu-sn="{{ pc.psu_sn|default_if_none:'' }}"
+                                        data-monitor-details="{{ pc.monitor_details|default_if_none:'' }}" data-monitor-sn="{{ pc.monitor_sn|default_if_none:'' }}" 
+                                        data-avr-details="{{ pc.avr_details|default_if_none:'' }}" data-avr-sn="{{ pc.avr_sn|default_if_none:'' }}" 
+                                        data-keyboard-details="{{ pc.keyboard_details|default_if_none:'' }}" data-keyboard-sn="{{ pc.keyboard_sn|default_if_none:'' }}" 
+                                        data-mouse-details="{{ pc.mouse_details|default_if_none:'' }}" data-mouse-sn="{{ pc.mouse_sn|default_if_none:'' }}" 
+                                        data-hdmi="{{ pc.has_hdmi|yesno:'true,false' }}" data-vga="{{ pc.has_vga|yesno:'true,false' }}"><i class="fas fa-pencil-alt"></i></button>
+                                </li>
+                                {% empty %}
+                                <li style="color:#999; font-style:italic; border:none; background:none; padding:0;">No defective units.</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+
+                    <div class="alert-section">
+                        <h4><i class="fas fa-exclamation-triangle"></i> Missing Components</h4>
+                        {% if incomplete|length > 1 %}
+                            <div class="summary-box" style="border-color:#ff5757; color:#ff5757;">
+                                <span><i class="fas fa-tools"></i> {{ incomplete|length }} Units Incomplete</span>
+                                <button class="btn-view-all" style="background:#ff5757;" onclick="openMissingListModal()">View List</button>
+                            </div>
+                        {% else %}
+                            <ul class="alert-list">
+                                {% for pc in incomplete %}
+                                <li class="single-alert-item">
+                                    <div>
+                                        <strong>{{ pc.custom_id }}</strong>
+                                        {% if not pc.processor %}<span class="missing-tag">CPU</span>{% endif %}
+                                        {% if not pc.ram %}<span class="missing-tag">RAM</span>{% endif %}
+                                        {% if not pc.storage %}<span class="missing-tag">Storage</span>{% endif %}
+                                        {% if not pc.motherboard %}<span class="missing-tag">Mobo</span>{% endif %}
+                                        {% if not pc.psu %}<span class="missing-tag">PSU</span>{% endif %}
+                                        {% if not pc.is_igpu and not pc.graphics_card %}<span class="missing-tag">GPU</span>{% endif %}
+                                        
+                                        {% if not pc.monitor_details %}<span class="missing-tag">Monitor</span>{% endif %}
+                                        {% if not pc.avr_details %}<span class="missing-tag">AVR</span>{% endif %}
+                                        {% if not pc.keyboard_details %}<span class="missing-tag">KB</span>{% endif %}
+                                        {% if not pc.mouse_details %}<span class="missing-tag">Mouse</span>{% endif %}
+                                        {% if not pc.has_hdmi and not pc.has_vga %}<span class="missing-tag">Cable</span>{% endif %}
+                                    </div>
+                                    <button class="btn-update-small" onclick="openUpdateModal(this)" 
+                                        data-id="{{ pc.id }}" data-custom-id="{{ pc.custom_id }}" data-room="{{ pc.room.id }}" data-status="{{ pc.status }}" data-remarks="{{ pc.remarks|default_if_none:'' }}"
+                                        data-processor="{{ pc.processor }}" data-processor-sn="{{ pc.processor_sn|default_if_none:'' }}" 
+                                        data-ram="{{ pc.ram }}" data-ram-sn="{{ pc.ram_sn|default_if_none:'' }}" 
+                                        data-ram2="{{ pc.ram_2|default_if_none:'' }}" data-ram2sn="{{ pc.ram_2_sn|default_if_none:'' }}" 
+                                        data-ram3="{{ pc.ram_3|default_if_none:'' }}" data-ram3sn="{{ pc.ram_3_sn|default_if_none:'' }}" 
+                                        data-ram4="{{ pc.ram_4|default_if_none:'' }}" data-ram4sn="{{ pc.ram_4_sn|default_if_none:'' }}" 
+                                        data-storage="{{ pc.storage }}" data-storage-sn="{{ pc.storage_sn|default_if_none:'' }}" 
+                                        data-storage2="{{ pc.storage_2|default_if_none:'' }}" data-storage2sn="{{ pc.storage_2_sn|default_if_none:'' }}" 
+                                        data-storage3="{{ pc.storage_3|default_if_none:'' }}" data-storage3sn="{{ pc.storage_3_sn|default_if_none:'' }}" 
+                                        data-storage4="{{ pc.storage_4|default_if_none:'' }}" data-storage4sn="{{ pc.storage_4_sn|default_if_none:'' }}" 
+                                        data-isigpu="{{ pc.is_igpu|yesno:'true,false' }}"
+                                        data-graphics="{{ pc.graphics_card }}" data-graphics-sn="{{ pc.graphics_card_sn|default_if_none:'' }}" 
+                                        data-motherboard="{{ pc.motherboard|default_if_none:'' }}" data-motherboard-sn="{{ pc.motherboard_sn|default_if_none:'' }}" 
+                                        data-psu="{{ pc.psu|default_if_none:'' }}" data-psu-sn="{{ pc.psu_sn|default_if_none:'' }}"
+                                        data-monitor-details="{{ pc.monitor_details|default_if_none:'' }}" data-monitor-sn="{{ pc.monitor_sn|default_if_none:'' }}" 
+                                        data-avr-details="{{ pc.avr_details|default_if_none:'' }}" data-avr-sn="{{ pc.avr_sn|default_if_none:'' }}" 
+                                        data-keyboard-details="{{ pc.keyboard_details|default_if_none:'' }}" data-keyboard-sn="{{ pc.keyboard_sn|default_if_none:'' }}" 
+                                        data-mouse-details="{{ pc.mouse_details|default_if_none:'' }}" data-mouse-sn="{{ pc.mouse_sn|default_if_none:'' }}" 
+                                        data-hdmi="{{ pc.has_hdmi|yesno:'true,false' }}" data-vga="{{ pc.has_vga|yesno:'true,false' }}"><i class="fas fa-pencil-alt"></i></button>
+                                </li>
+                                {% empty %}
+                                <li style="color:#999; font-style:italic; border:none; background:none; padding:0;">All accessories complete.</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="section-heading"><i class="fas fa-map-marker-alt" style="color:#ff5757;"></i> Location Overview</h3>
+        <div class="room-grid">
+            {% for room in rooms %}
+                <div class="room-card" onclick="openRoomModal('{{ room.id }}')">
+                    <div class="room-actions">
+                        <button class="action-btn-small" onclick="event.stopPropagation(); openEditRoomModal('{{ room.id }}', '{{ room.name }}')"><i class="fas fa-pencil-alt"></i></button>
+                        <button class="action-btn-small" onclick="event.stopPropagation(); openDeleteRoomModal('{{ room.id }}', '{{ room.name }}')"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <div class="room-icon"><i class="fas fa-desktop"></i></div>
+                    <div class="room-count">{{ room.count }}</div>
+                    <div class="room-label">{{ room.name }}</div>
+                </div>
+
+                <div id="room-data-{{ room.id }}" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <div style="font-size:1.2rem; font-weight:700; color:#2c3e50;">{{ room.name }} Inventory</div>
+                        <span style="background:#fff5f5; padding:6px 15px; border-radius:20px; font-weight:700; color:#ff5757; border:1px solid #ff5757;">Total: {{ room.count }}</span>
+                    </div>
+                    {% if room.pcs %}
+                    <table class="pc-table">
+                        <thead><tr><th>ID</th><th>Specs Overview</th><th>Status</th><th>Actions</th></tr></thead>
+                        <tbody>
+                            {% for pc in room.pcs %}
+                            <tr>
+                                <td><strong>{{ pc.custom_id }}</strong></td>
+                                <td class="text-break" style="min-width: 220px;">
+                                    <div class="specs-list">
+                                        <strong>CPU:</strong> {{ pc.processor|default:"--" }}<br>
+                                        <strong>RAM:</strong> {{ pc.ram|default:"--" }} 
+                                        {% if pc.ram_2 %}, {{ pc.ram_2 }}{% endif %}
+                                        {% if pc.ram_3 %}, {{ pc.ram_3 }}{% endif %}
+                                        {% if pc.ram_4 %}, {{ pc.ram_4 }}{% endif %}<br>
+                                        <strong>Disk:</strong> {{ pc.storage|default:"--" }}
+                                        {% if pc.storage_2 %}, {{ pc.storage_2 }}{% endif %}
+                                        {% if pc.storage_3 %}, {{ pc.storage_3 }}{% endif %}
+                                        {% if pc.storage_4 %}, {{ pc.storage_4 }}{% endif %}<br>
+                                        <strong>GPU:</strong> {{ pc.graphics_card|default:"--" }}<br>
+                                        <strong>Mobo:</strong> {{ pc.motherboard|default:"--" }}
+                                    </div>
+                                </td>
+                                <td><span class="badge-status status-{{ pc.status }}">{{ pc.status }}</span></td>
+                                <td>
+                                    <button class="btn-table-action edit" onclick="openUpdateModal(this)"
+                                        data-id="{{ pc.id }}" data-custom-id="{{ pc.custom_id }}" data-room="{{ pc.room.id }}" data-status="{{ pc.status }}" data-remarks="{{ pc.remarks|default_if_none:'' }}"
+                                        data-processor="{{ pc.processor }}" data-processor-sn="{{ pc.processor_sn|default_if_none:'' }}" 
+                                        data-ram="{{ pc.ram }}" data-ram-sn="{{ pc.ram_sn|default_if_none:'' }}" 
+                                        data-ram2="{{ pc.ram_2|default_if_none:'' }}" data-ram2sn="{{ pc.ram_2_sn|default_if_none:'' }}" 
+                                        data-ram3="{{ pc.ram_3|default_if_none:'' }}" data-ram3sn="{{ pc.ram_3_sn|default_if_none:'' }}" 
+                                        data-ram4="{{ pc.ram_4|default_if_none:'' }}" data-ram4sn="{{ pc.ram_4_sn|default_if_none:'' }}" 
+                                        data-storage="{{ pc.storage }}" data-storage-sn="{{ pc.storage_sn|default_if_none:'' }}" 
+                                        data-storage2="{{ pc.storage_2|default_if_none:'' }}" data-storage2sn="{{ pc.storage_2_sn|default_if_none:'' }}" 
+                                        data-storage3="{{ pc.storage_3|default_if_none:'' }}" data-storage3sn="{{ pc.storage_3_sn|default_if_none:'' }}" 
+                                        data-storage4="{{ pc.storage_4|default_if_none:'' }}" data-storage4sn="{{ pc.storage_4_sn|default_if_none:'' }}" 
+                                        data-isigpu="{{ pc.is_igpu|yesno:'true,false' }}"
+                                        data-graphics="{{ pc.graphics_card }}" data-graphics-sn="{{ pc.graphics_card_sn|default_if_none:'' }}" 
+                                        data-motherboard="{{ pc.motherboard|default_if_none:'' }}" data-motherboard-sn="{{ pc.motherboard_sn|default_if_none:'' }}" 
+                                        data-psu="{{ pc.psu|default_if_none:'' }}" data-psu-sn="{{ pc.psu_sn|default_if_none:'' }}"
+                                        data-monitor-details="{{ pc.monitor_details|default_if_none:'' }}" data-monitor-sn="{{ pc.monitor_sn|default_if_none:'' }}" 
+                                        data-avr-details="{{ pc.avr_details|default_if_none:'' }}" data-avr-sn="{{ pc.avr_sn|default_if_none:'' }}" 
+                                        data-keyboard-details="{{ pc.keyboard_details|default_if_none:'' }}" data-keyboard-sn="{{ pc.keyboard_sn|default_if_none:'' }}" 
+                                        data-mouse-details="{{ pc.mouse_details|default_if_none:'' }}" data-mouse-sn="{{ pc.mouse_sn|default_if_none:'' }}" 
+                                        data-hdmi="{{ pc.has_hdmi|yesno:'true,false' }}" data-vga="{{ pc.has_vga|yesno:'true,false' }}"><i class="fas fa-pencil-alt"></i></button>
+                                    <button class="btn-table-action delete" onclick="openDeletePCModal('{{ pc.id }}', '{{ pc.custom_id }}')"><i class="fas fa-trash-alt"></i></button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <div id="defectiveListModal" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h3>Defective Units List</h3><button class="close-btn" onclick="closeDefectiveListModal()">&times;</button></div><div class="modal-body"><table class="pc-table"><thead><tr><th>ID</th><th>Room</th><th>Issue</th><th>Action</th></tr></thead><tbody>{% for pc in defective %}<tr><td><strong>{{ pc.custom_id }}</strong></td><td>{{ pc.room.name }}</td><td class="text-break" style="color:#c0392b;">{{ pc.remarks|default:"--" }}</td><td><button class="btn-table-action edit" onclick="openUpdateModal(this)" data-id="{{ pc.id }}" data-custom-id="{{ pc.custom_id }}" data-room="{{ pc.room.id }}" data-status="{{ pc.status }}" data-remarks="{{ pc.remarks|default_if_none:'' }}" data-processor="{{ pc.processor }}" data-processor-sn="{{ pc.processor_sn|default_if_none:'' }}" data-ram="{{ pc.ram }}" data-ram-sn="{{ pc.ram_sn|default_if_none:'' }}" data-ram2="{{ pc.ram_2|default_if_none:'' }}" data-ram2sn="{{ pc.ram_2_sn|default_if_none:'' }}" data-ram3="{{ pc.ram_3|default_if_none:'' }}" data-ram3sn="{{ pc.ram_3_sn|default_if_none:'' }}" data-ram4="{{ pc.ram_4|default_if_none:'' }}" data-ram4sn="{{ pc.ram_4_sn|default_if_none:'' }}" data-storage="{{ pc.storage }}" data-storage-sn="{{ pc.storage_sn|default_if_none:'' }}" data-storage2="{{ pc.storage_2|default_if_none:'' }}" data-storage2sn="{{ pc.storage_2_sn|default_if_none:'' }}" data-storage3="{{ pc.storage_3|default_if_none:'' }}" data-storage3sn="{{ pc.storage_3_sn|default_if_none:'' }}" data-storage4="{{ pc.storage_4|default_if_none:'' }}" data-storage4sn="{{ pc.storage_4_sn|default_if_none:'' }}" data-isigpu="{{ pc.is_igpu|yesno:'true,false' }}" data-graphics="{{ pc.graphics_card }}" data-graphics-sn="{{ pc.graphics_card_sn|default_if_none:'' }}" data-motherboard="{{ pc.motherboard|default_if_none:'' }}" data-motherboard-sn="{{ pc.motherboard_sn|default_if_none:'' }}" data-psu="{{ pc.psu|default_if_none:'' }}" data-psu-sn="{{ pc.psu_sn|default_if_none:'' }}" data-monitor-details="{{ pc.monitor_details|default_if_none:'' }}" data-monitor-sn="{{ pc.monitor_sn|default_if_none:'' }}" data-avr-details="{{ pc.avr_details|default_if_none:'' }}" data-avr-sn="{{ pc.avr_sn|default_if_none:'' }}" data-keyboard-details="{{ pc.keyboard_details|default_if_none:'' }}" data-keyboard-sn="{{ pc.keyboard_sn|default_if_none:'' }}" data-mouse-details="{{ pc.mouse_details|default_if_none:'' }}" data-mouse-sn="{{ pc.mouse_sn|default_if_none:'' }}" data-hdmi="{{ pc.has_hdmi|yesno:'true,false' }}" data-vga="{{ pc.has_vga|yesno:'true,false' }}"><i class="fas fa-pencil-alt"></i></button></td></tr>{% endfor %}</tbody></table></div></div></div>
+    
+    <div id="missingListModal" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h3>Incomplete Units List</h3><button class="close-btn" onclick="closeMissingListModal()">&times;</button></div><div class="modal-body"><table class="pc-table"><thead><tr><th>ID</th><th>Room</th><th>Missing</th><th>Action</th></tr></thead><tbody>{% for pc in incomplete %}<tr><td><strong>{{ pc.custom_id }}</strong></td><td>{{ pc.room.name }}</td><td>{% if not pc.processor %}<span class="missing-tag">CPU</span>{% endif %}{% if not pc.ram %}<span class="missing-tag">RAM</span>{% endif %}{% if not pc.storage %}<span class="missing-tag">Storage</span>{% endif %}{% if not pc.motherboard %}<span class="missing-tag">Mobo</span>{% endif %}{% if not pc.psu %}<span class="missing-tag">PSU</span>{% endif %}{% if not pc.is_igpu and not pc.graphics_card %}<span class="missing-tag">GPU</span>{% endif %}{% if not pc.monitor_details %}<span class="missing-tag">Monitor</span>{% endif %}{% if not pc.avr_details %}<span class="missing-tag">AVR</span>{% endif %}{% if not pc.keyboard_details %}<span class="missing-tag">KB</span>{% endif %}{% if not pc.mouse_details %}<span class="missing-tag">Mouse</span>{% endif %}{% if not pc.has_hdmi and not pc.has_vga %}<span class="missing-tag">Cable</span>{% endif %}</td><td><button class="btn-table-action edit" onclick="openUpdateModal(this)" data-id="{{ pc.id }}" data-custom-id="{{ pc.custom_id }}" data-room="{{ pc.room.id }}" data-status="{{ pc.status }}" data-remarks="{{ pc.remarks|default_if_none:'' }}" data-processor="{{ pc.processor }}" data-processor-sn="{{ pc.processor_sn|default_if_none:'' }}" data-ram="{{ pc.ram }}" data-ram-sn="{{ pc.ram_sn|default_if_none:'' }}" data-ram2="{{ pc.ram_2|default_if_none:'' }}" data-ram2sn="{{ pc.ram_2_sn|default_if_none:'' }}" data-ram3="{{ pc.ram_3|default_if_none:'' }}" data-ram3sn="{{ pc.ram_3_sn|default_if_none:'' }}" data-ram4="{{ pc.ram_4|default_if_none:'' }}" data-ram4sn="{{ pc.ram_4_sn|default_if_none:'' }}" data-storage="{{ pc.storage }}" data-storage-sn="{{ pc.storage_sn|default_if_none:'' }}" data-storage2="{{ pc.storage_2|default_if_none:'' }}" data-storage2sn="{{ pc.storage_2_sn|default_if_none:'' }}" data-storage3="{{ pc.storage_3|default_if_none:'' }}" data-storage3sn="{{ pc.storage_3_sn|default_if_none:'' }}" data-storage4="{{ pc.storage_4|default_if_none:'' }}" data-storage4sn="{{ pc.storage_4_sn|default_if_none:'' }}" data-isigpu="{{ pc.is_igpu|yesno:'true,false' }}" data-graphics="{{ pc.graphics_card }}" data-graphics-sn="{{ pc.graphics_card_sn|default_if_none:'' }}" data-motherboard="{{ pc.motherboard|default_if_none:'' }}" data-motherboard-sn="{{ pc.motherboard_sn|default_if_none:'' }}" data-psu="{{ pc.psu|default_if_none:'' }}" data-psu-sn="{{ pc.psu_sn|default_if_none:'' }}" data-monitor-details="{{ pc.monitor_details|default_if_none:'' }}" data-monitor-sn="{{ pc.monitor_sn|default_if_none:'' }}" data-avr-details="{{ pc.avr_details|default_if_none:'' }}" data-avr-sn="{{ pc.avr_sn|default_if_none:'' }}" data-keyboard-details="{{ pc.keyboard_details|default_if_none:'' }}" data-keyboard-sn="{{ pc.keyboard_sn|default_if_none:'' }}" data-mouse-details="{{ pc.mouse_details|default_if_none:'' }}" data-mouse-sn="{{ pc.mouse_sn|default_if_none:'' }}" data-hdmi="{{ pc.has_hdmi|yesno:'true,false' }}" data-vga="{{ pc.has_vga|yesno:'true,false' }}"><i class="fas fa-pencil-alt"></i></button></td></tr>{% endfor %}</tbody></table></div></div></div>
+    
+    <div id="roomModal" class="modal-overlay"><div class="modal-content" style="max-width:850px;"><div class="modal-header"><h3>Room Inventory</h3><button class="close-btn" onclick="closeRoomModal()">&times;</button></div><div id="modal-body-content" class="modal-body"></div></div></div>
+
+    <div id="addPCModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h3>ADD NEW PC UNIT</h3><button class="close-btn" onclick="closeAddModal()">&times;</button></div>
+            <div class="modal-body">
+                <form action="{% url 'add_pc' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Assign Room</label><select name="room" id="add_room" class="form-select" onchange="fetchNextID()" required><option value="" disabled selected>-- Select Room --</option>{% for r in rooms %}<option value="{{ r.id }}">{{ r.name }}</option>{% endfor %}</select></div>
+                        <div class="form-group"><label class="form-label">Generated ID</label><input type="text" name="custom_id" id="add_custom_id" class="form-input" readonly></div>
+                    </div>
+                    
+                    <div class="section-divider">Hardware Specs</div>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label">Processor</label>
+                        <div class="input-group">
+                            <input type="text" name="processor" id="add_processor" class="form-input-name" placeholder="Type name..." onkeyup="updateIgpuText('add')">
+                            <input type="text" name="processor_sn" id="add_processor_sn" class="form-input-sn" placeholder="S/N (Opt)">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('add_processor', 'add_processor_sn', 'avail_cpu', 'Processors')"><i class="fas fa-search"></i> Browse</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
+                            RAM
+                            <button type="button" onclick="showNextSlot('add', 'ram')" style="background:none; border:none; color:#ff5757; cursor:pointer; font-size:0.75rem; font-weight:600;"><i class="fas fa-plus"></i> Add Slot</button>
+                        </label>
+                        <div class="input-group" style="margin-bottom: 5px;">
+                            <input type="text" name="ram" id="add_ram" class="form-input-name" placeholder="Slot 1...">
+                            <input type="text" name="ram_sn" id="add_ram_sn" class="form-input-sn" placeholder="S/N (Opt)">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('add_ram', 'add_ram_sn', 'avail_ram', 'RAM')"><i class="fas fa-search"></i></button>
+                        </div>
+                        <div class="input-group" id="add_ram_2_group" style="display:none; margin-bottom: 5px;">
+                            <input type="text" name="ram_2" id="add_ram_2" class="form-input-name" placeholder="Slot 2...">
+                            <input type="text" name="ram_2_sn" id="add_ram_2_sn" class="form-input-sn" placeholder="S/N (Opt)">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('add_ram_2', 'add_ram_2_sn', 'avail_ram', 'RAM')"><i class="fas fa-search"></i></button>
+                            <button type="button" class="btn-remove-slot" onclick="hideSlot('add', 'ram', 2)" title="Remove Slot"><i class="fas fa-times"></i></button>
+                        </div>
+                        <div class="input-group" id="add_ram_3_group" style="display:none; margin-bottom: 5px;">
+                            <input type="text" name="ram_3" id="add_ram_3" class="form-input-name" placeholder="Slot 3...">
+                            <input type="text" name="ram_3_sn" id="add_ram_3_sn" class="form-input-sn" placeholder="S/N (Opt)">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('add_ram_3', 'add_ram_3_sn', 'avail_ram', 'RAM')"><i class="fas fa-search"></i></button>
+                            <button type="button" class="btn-remove-slot" onclick="hideSlot('add', 'ram', 3)" title="Remove Slot"><i class="fas fa-times"></i></button>
+                        </div>
+                        <div class="input-group" id="add_ram_4_group" style="display:none; margin-bottom: 5px;">
+                            <input type="text" name="ram_4" id="add_ram_4" class="form-input-name" placeholder="Slot 4...">
+                            <input type="text" name="ram_4_sn" id="add_ram_4_sn" class="form-input-sn" placeholder="S/N (Opt)">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('add_ram_4', 'add_ram_4_sn', 'avail_ram', 'RAM')"><i class="fas fa-search"></i></button>
+                            <button type="button" class="btn-remove-slot" onclick="hideSlot('add', 'ram', 4)" title="Remove Slot"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
+                            Storage Drives
+                            <button type="button" onclick="showNextSlot('add', 'storage')" style="background:none; border:none; color:#ff5757; cursor:pointer; font-size:0.75rem; font-weight:600;"><i class="fas fa-plus"></i> Add Slot</button>
+                        </label>
+                        <div class="input-group" style="margin-bottom: 5px;">
+                            <input type="text" name="storage" id="add_storage" class="form-input-name" placeholder="Drive 1...">
+                            <input type="text" name="storage_sn" id="add_storage_sn" class="form-input-sn" placeholder="S/N (Opt)">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('add_storage', 'add_storage_sn', 'avail_storage', 'Storage Drives')"><i class="fas fa-search"></i></button>
+                        </div>
+                        <div class="input-group" id="add_storage_2_group" style="display:none; margin-bottom: 5px;">
+                            <input type="text" name="storage_2" id="add_storage_2" class="form-input-name" placeholder="Drive 2...">
+                            <input type="text" name="storage_2_sn" id="add_storage_2_sn" class="form-input-sn" placeholder="S/N (Opt)">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('add_storage_2', 'add_storage_2_sn', 'avail_storage', 'Storage Drives')"><i class="fas fa-search"></i></button>
+                            <button type="button" class="btn-remove-slot" onclick="hideSlot('add', 'storage', 2)" title="Remove Slot"><i class="fas fa-times"></i></button>
+                        </div>
+                        <div class="input-group" id="add_storage_3_group" style="display:none; margin-bottom: 5px;">
+                            <input type="text" name="storage_3" id="add_storage_3" class="form-input-name" placeholder="Drive 3...">
+                            <input type="text" name="storage_3_sn" id="add_storage_3_sn" class="form-input-sn" placeholder="S/N (Opt)">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('add_storage_3', 'add_storage_3_sn', 'avail_storage', 'Storage Drives')"><i class="fas fa-search"></i></button>
+                            <button type="button" class="btn-remove-slot" onclick="hideSlot('add', 'storage', 3)" title="Remove Slot"><i class="fas fa-times"></i></button>
+                        </div>
+                        <div class="input-group" id="add_storage_4_group" style="display:none; margin-bottom: 5px;">
+                            <input type="text" name="storage_4" id="add_storage_4" class="form-input-name" placeholder="Drive 4...">
+                            <input type="text" name="storage_4_sn" id="add_storage_4_sn" class="form-input-sn" placeholder="S/N (Opt)">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('add_storage_4', 'add_storage_4_sn', 'avail_storage', 'Storage Drives')"><i class="fas fa-search"></i></button>
+                            <button type="button" class="btn-remove-slot" onclick="hideSlot('add', 'storage', 4)" title="Remove Slot"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
+                            GPU / Graphics Card
+                            <span style="font-weight: normal; font-size:0.75rem;">
+                                <label style="margin-right:8px; cursor:pointer;"><input type="radio" name="gpu_type_add" id="gpu_add_ded" value="dedicated" checked onclick="toggleGpuType('add', 'dedicated')"> Dedicated</label>
+                                <label style="cursor:pointer;"><input type="radio" name="gpu_type_add" id="gpu_add_int" value="integrated" onclick="toggleGpuType('add', 'integrated')"> Integrated (iGPU)</label>
+                            </span>
+                        </label>
+                        <input type="hidden" name="is_igpu" id="add_is_igpu" value="false">
+                        <div class="input-group">
+                            <input type="text" name="graphics_card" id="add_graphics" class="form-input-name" placeholder="Type name...">
+                            <input type="text" name="graphics_card_sn" id="add_graphics_sn" class="form-input-sn" placeholder="S/N (Opt)">
+                            <button type="button" class="btn-browse" id="add_btn_gpu_browse" onclick="openBrowseModal('add_graphics', 'add_graphics_sn', 'avail_gpu', 'Graphics Cards')"><i class="fas fa-search"></i> Browse</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label">Motherboard</label>
+                        <div class="input-group">
+                            <input type="text" name="motherboard" id="add_mobo" class="form-input-name" placeholder="Type name...">
+                            <input type="text" name="motherboard_sn" id="add_mobo_sn" class="form-input-sn" placeholder="S/N (Opt)">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('add_mobo', 'add_mobo_sn', 'avail_mobo', 'Motherboards')"><i class="fas fa-search"></i> Browse</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 25px;">
+                        <label class="form-label">Power Supply (PSU)</label>
+                        <div class="input-group">
+                            <input type="text" name="psu" id="add_psu" class="form-input-name" placeholder="Type Brand/Wattage...">
+                            <input type="text" name="psu_sn" id="add_psu_sn" class="form-input-sn" placeholder="S/N (Opt)">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('add_psu', 'add_psu_sn', 'avail_psu', 'Power Supplies')"><i class="fas fa-search"></i> Browse</button>
+                        </div>
+                    </div>
+
+                    <div class="section-divider">Peripherals & Accessories</div>
+
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label">Monitor Details</label>
+                        <div class="input-group">
+                            <input type="text" name="monitor_details" id="add_monitor" class="form-input-name" placeholder="Type Brand...">
+                            <input type="text" name="monitor_sn" id="add_monitor_sn" class="form-input-sn" placeholder="S/N (Opt)">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('add_monitor', 'add_monitor_sn', 'avail_monitors', 'Monitors')"><i class="fas fa-search"></i> Browse</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label">AVR Details</label>
+                        <div class="input-group">
+                            <input type="text" name="avr_details" id="add_avr" class="form-input-name" placeholder="Type Brand...">
+                            <input type="text" name="avr_sn" id="add_avr_sn" class="form-input-sn" placeholder="S/N (Opt)">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('add_avr', 'add_avr_sn', 'avail_avrs', 'AVRs')"><i class="fas fa-search"></i> Browse</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label">Keyboard Details</label>
+                        <div class="input-group">
+                            <input type="text" name="keyboard_details" id="add_keyboard" class="form-input-name" placeholder="Type Brand...">
+                            <input type="text" name="keyboard_sn" id="add_keyboard_sn" class="form-input-sn" placeholder="S/N (Opt)">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('add_keyboard', 'add_keyboard_sn', 'avail_keyboards', 'Keyboards')"><i class="fas fa-search"></i> Browse</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 25px;">
+                        <label class="form-label">Mouse Details</label>
+                        <div class="input-group">
+                            <input type="text" name="mouse_details" id="add_mouse" class="form-input-name" placeholder="Type Brand...">
+                            <input type="text" name="mouse_sn" id="add_mouse_sn" class="form-input-sn" placeholder="S/N (Opt)">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('add_mouse', 'add_mouse_sn', 'avail_mice', 'Mice')"><i class="fas fa-search"></i> Browse</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group"><label class="form-label">Initial Status</label><select name="status" class="form-select"><option value="Working">Working</option><option value="Defective">Defective</option></select></div>
+                    
+                    <div class="section-divider">Cable Check</div>
+                    <div class="accessory-grid">
+                        <label class="acc-tile"><input type="checkbox" name="has_hdmi" checked value="True"> HDMI</label>
+                        <label class="acc-tile"><input type="checkbox" name="has_vga" checked value="True"> VGA</label>
+                    </div>
+                    <button type="submit" class="btn-submit">Save Unit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="updatePCModal" class="modal-overlay top-layer">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Update Unit Details</h3><button class="close-btn" onclick="closeUpdateModal()">&times;</button></div>
+            <div class="modal-body">
+                <form id="updateForm" method="POST">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">ID</label><input type="text" name="custom_id" id="upd_custom_id" class="form-input" readonly></div>
+                        <div class="form-group"><label class="form-label">Room</label><select name="room" id="upd_room" class="form-select">{% for r in rooms %}<option value="{{ r.id }}">{{ r.name }}</option>{% endfor %}</select></div>
+                    </div>
+                    
+                    <div class="section-divider">Hardware Specs</div>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label">Processor</label>
+                        <div class="input-group">
+                            <input type="text" name="processor" id="upd_processor" class="form-input-name" onkeyup="updateIgpuText('upd')">
+                            <input type="text" name="processor_sn" id="upd_processor_sn" class="form-input-sn" placeholder="S/N">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('upd_processor', 'upd_processor_sn', 'avail_cpu', 'Processors')"><i class="fas fa-search"></i></button>
+                        </div>
+                        <div class="component-footer">
+                            <div>Old Part Action: <select name="action_processor" class="action-select-inline"><option value="Working">📦 Return to Storage</option><option value="Defective">💔 Mark as Defective</option><option value="Missing">⚠️ Mark as Missing</option></select></div>
+                            <button type="button" class="btn-clear-field" onclick="clearComponent('upd_processor', 'action_processor')"><i class="fas fa-eraser"></i> Clear Field</button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
+                            RAM <button type="button" onclick="showNextSlot('upd', 'ram')" style="background:none; border:none; color:#ff5757; cursor:pointer; font-size:0.75rem; font-weight:600;"><i class="fas fa-plus"></i> Add Slot</button>
+                        </label>
+                        <div style="margin-bottom: 10px;">
+                            <div class="input-group">
+                                <input type="text" name="ram" id="upd_ram" class="form-input-name" placeholder="Slot 1...">
+                                <input type="text" name="ram_sn" id="upd_ram_sn" class="form-input-sn" placeholder="S/N">
+                                <button type="button" class="btn-browse" onclick="openBrowseModal('upd_ram', 'upd_ram_sn', 'avail_ram', 'RAM')"><i class="fas fa-search"></i></button>
+                            </div>
+                            <div class="component-footer">
+                                <div>Old Part Action: <select name="action_ram" class="action-select-inline"><option value="Working">📦 Return to Storage</option><option value="Defective">💔 Mark as Defective</option><option value="Missing">⚠️ Mark as Missing</option></select></div>
+                                <button type="button" class="btn-clear-field" onclick="clearComponent('upd_ram', 'action_ram')"><i class="fas fa-eraser"></i> Clear Field</button>
+                            </div>
+                        </div>
+                        <div id="upd_ram_2_group" style="display:none; margin-bottom: 10px;">
+                            <div class="input-group">
+                                <input type="text" name="ram_2" id="upd_ram_2" class="form-input-name" placeholder="Slot 2...">
+                                <input type="text" name="ram_2_sn" id="upd_ram_2_sn" class="form-input-sn" placeholder="S/N">
+                                <button type="button" class="btn-browse" onclick="openBrowseModal('upd_ram_2', 'upd_ram_2_sn', 'avail_ram', 'RAM')"><i class="fas fa-search"></i></button>
+                                <button type="button" class="btn-remove-slot" onclick="hideSlot('upd', 'ram', 2)" title="Remove Slot"><i class="fas fa-times"></i></button>
+                            </div>
+                            <div class="component-footer">
+                                <div>Old Part Action: <select name="action_ram_2" class="action-select-inline"><option value="Working">📦 Return to Storage</option><option value="Defective">💔 Mark as Defective</option><option value="Missing">⚠️ Mark as Missing</option></select></div>
+                                <button type="button" class="btn-clear-field" onclick="clearComponent('upd_ram_2', 'action_ram_2')"><i class="fas fa-eraser"></i> Clear Field</button>
+                            </div>
+                        </div>
+                        <div id="upd_ram_3_group" style="display:none; margin-bottom: 10px;">
+                            <div class="input-group">
+                                <input type="text" name="ram_3" id="upd_ram_3" class="form-input-name" placeholder="Slot 3...">
+                                <input type="text" name="ram_3_sn" id="upd_ram_3_sn" class="form-input-sn" placeholder="S/N">
+                                <button type="button" class="btn-browse" onclick="openBrowseModal('upd_ram_3', 'upd_ram_3_sn', 'avail_ram', 'RAM')"><i class="fas fa-search"></i></button>
+                                <button type="button" class="btn-remove-slot" onclick="hideSlot('upd', 'ram', 3)" title="Remove Slot"><i class="fas fa-times"></i></button>
+                            </div>
+                            <div class="component-footer">
+                                <div>Old Part Action: <select name="action_ram_3" class="action-select-inline"><option value="Working">📦 Return to Storage</option><option value="Defective">💔 Mark as Defective</option><option value="Missing">⚠️ Mark as Missing</option></select></div>
+                                <button type="button" class="btn-clear-field" onclick="clearComponent('upd_ram_3', 'action_ram_3')"><i class="fas fa-eraser"></i> Clear Field</button>
+                            </div>
+                        </div>
+                        <div id="upd_ram_4_group" style="display:none; margin-bottom: 10px;">
+                            <div class="input-group">
+                                <input type="text" name="ram_4" id="upd_ram_4" class="form-input-name" placeholder="Slot 4...">
+                                <input type="text" name="ram_4_sn" id="upd_ram_4_sn" class="form-input-sn" placeholder="S/N">
+                                <button type="button" class="btn-browse" onclick="openBrowseModal('upd_ram_4', 'upd_ram_4_sn', 'avail_ram', 'RAM')"><i class="fas fa-search"></i></button>
+                                <button type="button" class="btn-remove-slot" onclick="hideSlot('upd', 'ram', 4)" title="Remove Slot"><i class="fas fa-times"></i></button>
+                            </div>
+                            <div class="component-footer">
+                                <div>Old Part Action: <select name="action_ram_4" class="action-select-inline"><option value="Working">📦 Return to Storage</option><option value="Defective">💔 Mark as Defective</option><option value="Missing">⚠️ Mark as Missing</option></select></div>
+                                <button type="button" class="btn-clear-field" onclick="clearComponent('upd_ram_4', 'action_ram_4')"><i class="fas fa-eraser"></i> Clear Field</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
+                            Storage Drives <button type="button" onclick="showNextSlot('upd', 'storage')" style="background:none; border:none; color:#ff5757; cursor:pointer; font-size:0.75rem; font-weight:600;"><i class="fas fa-plus"></i> Add Slot</button>
+                        </label>
+                        <div style="margin-bottom: 10px;">
+                            <div class="input-group">
+                                <input type="text" name="storage" id="upd_storage" class="form-input-name" placeholder="Drive 1...">
+                                <input type="text" name="storage_sn" id="upd_storage_sn" class="form-input-sn" placeholder="S/N">
+                                <button type="button" class="btn-browse" onclick="openBrowseModal('upd_storage', 'upd_storage_sn', 'avail_storage', 'Storage Drives')"><i class="fas fa-search"></i></button>
+                            </div>
+                            <div class="component-footer">
+                                <div>Old Part Action: <select name="action_storage" class="action-select-inline"><option value="Working">📦 Return to Storage</option><option value="Defective">💔 Mark as Defective</option><option value="Missing">⚠️ Mark as Missing</option></select></div>
+                                <button type="button" class="btn-clear-field" onclick="clearComponent('upd_storage', 'action_storage')"><i class="fas fa-eraser"></i> Clear Field</button>
+                            </div>
+                        </div>
+                        <div id="upd_storage_2_group" style="display:none; margin-bottom: 10px;">
+                            <div class="input-group">
+                                <input type="text" name="storage_2" id="upd_storage_2" class="form-input-name" placeholder="Drive 2...">
+                                <input type="text" name="storage_2_sn" id="upd_storage_2_sn" class="form-input-sn" placeholder="S/N">
+                                <button type="button" class="btn-browse" onclick="openBrowseModal('upd_storage_2', 'upd_storage_2_sn', 'avail_storage', 'Storage Drives')"><i class="fas fa-search"></i></button>
+                                <button type="button" class="btn-remove-slot" onclick="hideSlot('upd', 'storage', 2)" title="Remove Slot"><i class="fas fa-times"></i></button>
+                            </div>
+                            <div class="component-footer">
+                                <div>Old Part Action: <select name="action_storage_2" class="action-select-inline"><option value="Working">📦 Return to Storage</option><option value="Defective">💔 Mark as Defective</option><option value="Missing">⚠️ Mark as Missing</option></select></div>
+                                <button type="button" class="btn-clear-field" onclick="clearComponent('upd_storage_2', 'action_storage_2')"><i class="fas fa-eraser"></i> Clear Field</button>
+                            </div>
+                        </div>
+                        <div id="upd_storage_3_group" style="display:none; margin-bottom: 10px;">
+                            <div class="input-group">
+                                <input type="text" name="storage_3" id="upd_storage_3" class="form-input-name" placeholder="Drive 3...">
+                                <input type="text" name="storage_3_sn" id="upd_storage_3_sn" class="form-input-sn" placeholder="S/N">
+                                <button type="button" class="btn-browse" onclick="openBrowseModal('upd_storage_3', 'upd_storage_3_sn', 'avail_storage', 'Storage Drives')"><i class="fas fa-search"></i></button>
+                                <button type="button" class="btn-remove-slot" onclick="hideSlot('upd', 'storage', 3)" title="Remove Slot"><i class="fas fa-times"></i></button>
+                            </div>
+                            <div class="component-footer">
+                                <div>Old Part Action: <select name="action_storage_3" class="action-select-inline"><option value="Working">📦 Return to Storage</option><option value="Defective">💔 Mark as Defective</option><option value="Missing">⚠️ Mark as Missing</option></select></div>
+                                <button type="button" class="btn-clear-field" onclick="clearComponent('upd_storage_3', 'action_storage_3')"><i class="fas fa-eraser"></i> Clear Field</button>
+                            </div>
+                        </div>
+                        <div id="upd_storage_4_group" style="display:none; margin-bottom: 10px;">
+                            <div class="input-group">
+                                <input type="text" name="storage_4" id="upd_storage_4" class="form-input-name" placeholder="Drive 4...">
+                                <input type="text" name="storage_4_sn" id="upd_storage_4_sn" class="form-input-sn" placeholder="S/N">
+                                <button type="button" class="btn-browse" onclick="openBrowseModal('upd_storage_4', 'upd_storage_4_sn', 'avail_storage', 'Storage Drives')"><i class="fas fa-search"></i></button>
+                                <button type="button" class="btn-remove-slot" onclick="hideSlot('upd', 'storage', 4)" title="Remove Slot"><i class="fas fa-times"></i></button>
+                            </div>
+                            <div class="component-footer">
+                                <div>Old Part Action: <select name="action_storage_4" class="action-select-inline"><option value="Working">📦 Return to Storage</option><option value="Defective">💔 Mark as Defective</option><option value="Missing">⚠️ Mark as Missing</option></select></div>
+                                <button type="button" class="btn-clear-field" onclick="clearComponent('upd_storage_4', 'action_storage_4')"><i class="fas fa-eraser"></i> Clear Field</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
+                            GPU / Graphics Card
+                            <span style="font-weight: normal; font-size:0.75rem;">
+                                <label style="margin-right:8px; cursor:pointer;"><input type="radio" name="gpu_type_upd" id="gpu_upd_ded" value="dedicated" onclick="toggleGpuType('upd', 'dedicated')"> Dedicated</label>
+                                <label style="cursor:pointer;"><input type="radio" name="gpu_type_upd" id="gpu_upd_int" value="integrated" onclick="toggleGpuType('upd', 'integrated')"> Integrated (iGPU)</label>
+                            </span>
+                        </label>
+                        <input type="hidden" name="is_igpu" id="upd_is_igpu" value="false">
+                        <div class="input-group">
+                            <input type="text" name="graphics_card" id="upd_graphics" class="form-input-name">
+                            <input type="text" name="graphics_card_sn" id="upd_graphics_sn" class="form-input-sn" placeholder="S/N">
+                            <button type="button" class="btn-browse" id="upd_btn_gpu_browse" onclick="openBrowseModal('upd_graphics', 'upd_graphics_sn', 'avail_gpu', 'Graphics Cards')"><i class="fas fa-search"></i></button>
+                        </div>
+                        <div class="component-footer">
+                            <div>Old Part Action: <select name="action_graphics_card" class="action-select-inline"><option value="Working">📦 Return to Storage</option><option value="Defective">💔 Mark as Defective</option><option value="Missing">⚠️ Mark as Missing</option></select></div>
+                            <button type="button" class="btn-clear-field" onclick="clearComponent('upd_graphics', 'action_graphics_card')"><i class="fas fa-eraser"></i> Clear Field</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label">Motherboard</label>
+                        <div class="input-group">
+                            <input type="text" name="motherboard" id="upd_motherboard" class="form-input-name">
+                            <input type="text" name="motherboard_sn" id="upd_motherboard_sn" class="form-input-sn" placeholder="S/N">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('upd_motherboard', 'upd_motherboard_sn', 'avail_mobo', 'Motherboards')"><i class="fas fa-search"></i></button>
+                        </div>
+                        <div class="component-footer">
+                            <div>Old Part Action: <select name="action_motherboard" class="action-select-inline"><option value="Working">📦 Return to Storage</option><option value="Defective">💔 Mark as Defective</option><option value="Missing">⚠️ Mark as Missing</option></select></div>
+                            <button type="button" class="btn-clear-field" onclick="clearComponent('upd_motherboard', 'action_motherboard')"><i class="fas fa-eraser"></i> Clear Field</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 25px;">
+                        <label class="form-label">Power Supply (PSU)</label>
+                        <div class="input-group">
+                            <input type="text" name="psu" id="upd_psu" class="form-input-name">
+                            <input type="text" name="psu_sn" id="upd_psu_sn" class="form-input-sn" placeholder="S/N">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('upd_psu', 'upd_psu_sn', 'avail_psu', 'Power Supplies')"><i class="fas fa-search"></i></button>
+                        </div>
+                        <div class="component-footer">
+                            <div>Old Part Action: <select name="action_psu" class="action-select-inline"><option value="Working">📦 Return to Storage</option><option value="Defective">💔 Mark as Defective</option><option value="Missing">⚠️ Mark as Missing</option></select></div>
+                            <button type="button" class="btn-clear-field" onclick="clearComponent('upd_psu', 'action_psu')"><i class="fas fa-eraser"></i> Clear Field</button>
+                        </div>
+                    </div>
+                    
+                    <div class="section-divider">Peripherals & Accessories</div>
+
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label">Monitor Details</label>
+                        <div class="input-group">
+                            <input type="text" name="monitor_details" id="upd_monitor_details" class="form-input-name">
+                            <input type="text" name="monitor_sn" id="upd_monitor_sn" class="form-input-sn" placeholder="S/N">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('upd_monitor_details', 'upd_monitor_sn', 'avail_monitors', 'Monitors')"><i class="fas fa-search"></i></button>
+                        </div>
+                        <div class="component-footer">
+                            <div>Old Part Action: <select name="action_monitor_details" class="action-select-inline"><option value="Working">📦 Return to Storage</option><option value="Defective">💔 Mark as Defective</option><option value="Missing">⚠️ Mark as Missing</option></select></div>
+                            <button type="button" class="btn-clear-field" onclick="clearComponent('upd_monitor_details', 'action_monitor_details')"><i class="fas fa-eraser"></i> Clear Field</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label">AVR Details</label>
+                        <div class="input-group">
+                            <input type="text" name="avr_details" id="upd_avr_details" class="form-input-name">
+                            <input type="text" name="avr_sn" id="upd_avr_sn" class="form-input-sn" placeholder="S/N">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('upd_avr_details', 'upd_avr_sn', 'avail_avrs', 'AVRs')"><i class="fas fa-search"></i></button>
+                        </div>
+                        <div class="component-footer">
+                            <div>Old Part Action: <select name="action_avr_details" class="action-select-inline"><option value="Working">📦 Return to Storage</option><option value="Defective">💔 Mark as Defective</option><option value="Missing">⚠️ Mark as Missing</option></select></div>
+                            <button type="button" class="btn-clear-field" onclick="clearComponent('upd_avr_details', 'action_avr_details')"><i class="fas fa-eraser"></i> Clear Field</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label">Keyboard Details</label>
+                        <div class="input-group">
+                            <input type="text" name="keyboard_details" id="upd_keyboard_details" class="form-input-name">
+                            <input type="text" name="keyboard_sn" id="upd_keyboard_sn" class="form-input-sn" placeholder="S/N">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('upd_keyboard_details', 'upd_keyboard_sn', 'avail_keyboards', 'Keyboards')"><i class="fas fa-search"></i></button>
+                        </div>
+                        <div class="component-footer">
+                            <div>Old Part Action: <select name="action_keyboard_details" class="action-select-inline"><option value="Working">📦 Return to Storage</option><option value="Defective">💔 Mark as Defective</option><option value="Missing">⚠️ Mark as Missing</option></select></div>
+                            <button type="button" class="btn-clear-field" onclick="clearComponent('upd_keyboard_details', 'action_keyboard_details')"><i class="fas fa-eraser"></i> Clear Field</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 25px;">
+                        <label class="form-label">Mouse Details</label>
+                        <div class="input-group">
+                            <input type="text" name="mouse_details" id="upd_mouse_details" class="form-input-name">
+                            <input type="text" name="mouse_sn" id="upd_mouse_sn" class="form-input-sn" placeholder="S/N">
+                            <button type="button" class="btn-browse" onclick="openBrowseModal('upd_mouse_details', 'upd_mouse_sn', 'avail_mice', 'Mice')"><i class="fas fa-search"></i></button>
+                        </div>
+                        <div class="component-footer">
+                            <div>Old Part Action: <select name="action_mouse_details" class="action-select-inline"><option value="Working">📦 Return to Storage</option><option value="Defective">💔 Mark as Defective</option><option value="Missing">⚠️ Mark as Missing</option></select></div>
+                            <button type="button" class="btn-clear-field" onclick="clearComponent('upd_mouse_details', 'action_mouse_details')"><i class="fas fa-eraser"></i> Clear Field</button>
+                        </div>
+                    </div>
+
+                    <div class="section-divider">Status & Issues</div>
+                    <div class="form-group"><label class="form-label">Current Status</label>
+                        <select name="status" id="upd_status" class="form-select" onchange="toggleUpdateRemarks()">
+                            <option value="Working">Working</option>
+                            <option value="Defective">Defective</option>
+                        </select>
+                    </div>
+                    <div id="upd_remarks_container" style="display:none; margin-top:10px;">
+                        <textarea name="remarks" id="upd_remarks" rows="2" class="form-input" placeholder="Description of Defect..."></textarea>
+                    </div>
+                    
+                    <div class="section-divider">Cable Check</div>
+                    <div class="accessory-grid">
+                        <label class="acc-tile"><input type="checkbox" name="has_hdmi" id="upd_hdmi" value="True"> HDMI</label>
+                        <label class="acc-tile"><input type="checkbox" name="has_vga" id="upd_vga" value="True"> VGA</label>
+                    </div>
+                    <button type="submit" class="btn-submit">Update Record</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="browseStorageModal" class="modal-overlay super-layer">
+        <div class="modal-content" style="max-width: 500px; max-height: 70vh;">
+            <div class="modal-header" style="background: #34495e;">
+                <h3 id="browseModalTitle" style="margin:0; font-size:1.1rem;">Browse Storage</h3>
+                <button class="close-btn" onclick="closeBrowseModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <input type="text" id="browseSearch" class="form-input" placeholder="Search components..." onkeyup="filterBrowseList()" style="margin-bottom: 15px; border-color:#ff5757;">
+                <div id="browseListContainer" style="overflow-y: auto; max-height: 40vh; padding-right: 5px;">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="deletePCModal" class="modal-overlay top-layer"><div class="modal-content" style="max-width: 400px; text-align:center;"><div class="modal-body"><h3 style="color:#2c3e50;">Delete Unit?</h3><p id="delete_pc_label"></p><div style="display:flex; gap:10px;"><button onclick="closeDeletePCModal()" class="btn-submit" style="background:#ccc;">Cancel</button><a id="confirmDeletePCBtn" href="#" class="btn-submit">Yes, Delete</a></div></div></div></div>
+    <div id="editRoomModal" class="modal-overlay top-layer"><div class="modal-content" style="max-width:450px;"><div class="modal-header"><h3>Rename Room</h3><button class="close-btn" onclick="closeEditRoomModal()">&times;</button></div><div class="modal-body"><form id="editRoomForm" method="POST">{% csrf_token %}<div class="form-group"><label>Room Name</label><input type="text" name="name" id="edit_room_name" class="form-input" required></div><button type="submit" class="btn-submit">Update Name</button></form></div></div></div>
+    <div id="deleteRoomModal" class="modal-overlay top-layer"><div class="modal-content" style="max-width:400px; text-align:center;"><div class="modal-body"><h3>Delete Room?</h3><p id="delete_room_label"></p><div style="display:flex; gap:10px;"><button onclick="closeDeleteRoomModal()" class="btn-submit" style="background:#ccc;">Cancel</button><a id="confirmDeleteRoomBtn" href="#" class="btn-submit">Yes, Delete</a></div></div></div></div>
+
+    <div id="addRoomModal" class="modal-overlay top-layer">
+        <div class="modal-content" style="max-width:450px;">
+            <div class="modal-header">
+                <h3>Add New Room</h3>
+                <button class="close-btn" onclick="closeAddRoomModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form action="{% url 'add_room' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>Room Name / Location</label>
+                        <input type="text" name="name" class="form-input" placeholder="e.g. Lab 1, Server Room..." required>
+                    </div>
+                    <button type="submit" class="btn-submit">Save Room</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateClock() { document.getElementById('clockDisplay').innerText = new Date().toLocaleString('en-US'); } setInterval(updateClock, 1000); updateClock();
+        function fetchNextID() { const id = document.getElementById('add_room').value; if(id) fetch(`/get_next_pc_id/?room_id=${id}`).then(r=>r.json()).then(d=>document.getElementById('add_custom_id').value=d.next_id); }
+        function toggleUpdateRemarks() { document.getElementById('upd_remarks_container').style.display = (document.getElementById('upd_status').value === 'Defective') ? 'block' : 'none'; }
+        
+        // --- DATA DICTIONARY ---
+        const storageData = {
+            'avail_cpu': [{% for item in avail_cpu %}{ name: "{{ item.name|escapejs }}", sn: "{{ item.serial_number|default:''|escapejs }}", qty: {{ item.quantity }}, loc: "{{ item.room.name|default:'General Storage'|escapejs }}" }{% if not forloop.last %},{% endif %}{% endfor %}],
+            'avail_ram': [{% for item in avail_ram %}{ name: "{{ item.name|escapejs }}", sn: "{{ item.serial_number|default:''|escapejs }}", qty: {{ item.quantity }}, loc: "{{ item.room.name|default:'General Storage'|escapejs }}" }{% if not forloop.last %},{% endif %}{% endfor %}],
+            'avail_storage': [{% for item in avail_storage %}{ name: "{{ item.name|escapejs }}", sn: "{{ item.serial_number|default:''|escapejs }}", qty: {{ item.quantity }}, loc: "{{ item.room.name|default:'General Storage'|escapejs }}" }{% if not forloop.last %},{% endif %}{% endfor %}],
+            'avail_gpu': [{% for item in avail_gpu %}{ name: "{{ item.name|escapejs }}", sn: "{{ item.serial_number|default:''|escapejs }}", qty: {{ item.quantity }}, loc: "{{ item.room.name|default:'General Storage'|escapejs }}" }{% if not forloop.last %},{% endif %}{% endfor %}],
+            'avail_mobo': [{% for item in avail_mobo %}{ name: "{{ item.name|escapejs }}", sn: "{{ item.serial_number|default:''|escapejs }}", qty: {{ item.quantity }}, loc: "{{ item.room.name|default:'General Storage'|escapejs }}" }{% if not forloop.last %},{% endif %}{% endfor %}],
+            'avail_psu': [{% for item in avail_psu %}{ name: "{{ item.name|escapejs }}", sn: "{{ item.serial_number|default:''|escapejs }}", qty: {{ item.quantity }}, loc: "{{ item.room.name|default:'General Storage'|escapejs }}" }{% if not forloop.last %},{% endif %}{% endfor %}],
+            'avail_monitors': [{% for item in avail_monitors %}{ name: "{{ item.name|escapejs }}", sn: "{{ item.serial_number|default:''|escapejs }}", qty: {{ item.quantity }}, loc: "{{ item.room.name|default:'General Storage'|escapejs }}" }{% if not forloop.last %},{% endif %}{% endfor %}],
+            'avail_avrs': [{% for item in avail_avrs %}{ name: "{{ item.name|escapejs }}", sn: "{{ item.serial_number|default:''|escapejs }}", qty: {{ item.quantity }}, loc: "{{ item.room.name|default:'General Storage'|escapejs }}" }{% if not forloop.last %},{% endif %}{% endfor %}],
+            'avail_keyboards': [{% for item in avail_keyboards %}{ name: "{{ item.name|escapejs }}", sn: "{{ item.serial_number|default:''|escapejs }}", qty: {{ item.quantity }}, loc: "{{ item.room.name|default:'General Storage'|escapejs }}" }{% if not forloop.last %},{% endif %}{% endfor %}],
+            'avail_mice': [{% for item in avail_mice %}{ name: "{{ item.name|escapejs }}", sn: "{{ item.serial_number|default:''|escapejs }}", qty: {{ item.quantity }}, loc: "{{ item.room.name|default:'General Storage'|escapejs }}" }{% if not forloop.last %},{% endif %}{% endfor %}]
+        };
+
+        // --- BROWSE LOGIC ---
+        let currentBrowseTargetId = '';
+        let currentBrowseSnTargetId = '';
+
+        function openBrowseModal(targetInputId, targetSnInputId, dataKey, titleText) {
+            currentBrowseTargetId = targetInputId;
+            currentBrowseSnTargetId = targetSnInputId;
+            document.getElementById('browseModalTitle').innerText = "Browse " + titleText;
+            
+            const container = document.getElementById('browseListContainer');
+            const items = storageData[dataKey] || [];
+            
+            let html = '<ul class="alert-list" style="list-style:none; padding:0; margin:0;">';
+            if (items.length === 0) {
+                html += '<li style="padding: 15px; color: #999; text-align:center; font-style:italic;">No parts currently available in storage.</li>';
+            } else {
+                items.forEach(item => {
+                    const safeName = item.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const safeSn = item.sn.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    
+                    html += `
+                        <li class="single-alert-item browse-item" style="cursor:pointer; transition:0.2s; align-items: flex-start;" onclick="selectBrowseItem('${safeName}', '${safeSn}')" onmouseover="this.style.borderColor='#ff5757'; this.style.background='white';" onmouseout="this.style.borderColor='#ffebeb'; this.style.background='#fff5f5';">
+                            <div style="flex-grow: 1; line-height: 1.4;">
+                                <strong style="color: #2c3e50;">${item.name}</strong><br>
+                                <small style="color:#7f8c8d; font-size:0.75rem;"><i class="fas fa-barcode"></i> S/N: ${item.sn ? item.sn : 'N/A'} | <i class="fas fa-map-marker-alt" style="color:#ff5757;"></i> Loc: ${item.loc}</small>
+                            </div>
+                            <span class="badge-status status-Working" style="font-size:0.75rem; background:#ff5757; color:white; padding:4px 10px; border-radius:10px; white-space:nowrap; align-self: center;">Qty: ${item.qty}</span>
+                        </li>
+                    `;
+                });
+            }
+            html += '</ul>';
+            
+            container.innerHTML = html;
+            document.getElementById('browseSearch').value = '';
+            document.getElementById('browseStorageModal').classList.add('show');
+        }
+
+        function closeBrowseModal() { document.getElementById('browseStorageModal').classList.remove('show'); }
+
+        function selectBrowseItem(itemName, itemSn) {
+            document.getElementById(currentBrowseTargetId).value = itemName.replace(/&quot;/g, '"');
+            document.getElementById(currentBrowseSnTargetId).value = itemSn.replace(/&quot;/g, '"');
+            closeBrowseModal();
+        }
+
+        function filterBrowseList() {
+            const filter = document.getElementById('browseSearch').value.toLowerCase();
+            const items = document.querySelectorAll('.browse-item');
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                item.style.display = text.includes(filter) ? 'flex' : 'none';
+            });
+        }
+
+        // --- MULTI-SLOT LOGIC ---
+        function showNextSlot(mode, type) {
+            for (let i = 2; i <= 4; i++) {
+                let group = document.getElementById(`${mode}_${type}_${i}_group`);
+                if (group.style.display === 'none') {
+                    group.style.display = 'flex'; // Changed to flex for alignment
+                    break;
+                }
+            }
+        }
+
+        function hideSlot(mode, type, index) {
+            // Hide the group completely
+            document.getElementById(`${mode}_${type}_${index}_group`).style.display = 'none';
+            
+            // Clear the inputs so no ghost data gets sent to Django
+            document.getElementById(`${mode}_${type}_${index}`).value = '';
+            document.getElementById(`${mode}_${type}_${index}_sn`).value = '';
+        }
+        
+        // --- CLEAR COMPONENT LOGIC ---
+        function clearComponent(inputId, actionName) {
+            const nameField = document.getElementById(inputId);
+            if(nameField && !nameField.readOnly) nameField.value = '';
+            
+            let snId = inputId.includes('_details') ? inputId.replace('_details', '_sn') : inputId + '_sn';
+            const snField = document.getElementById(snId);
+            
+            if(snField) snField.value = '';
+            
+            const actionDrops = document.getElementsByName(actionName);
+            if(actionDrops.length > 0) {
+                actionDrops[0].value = 'Missing';
+            }
+        }
+
+        // --- iGPU AUTOMATION LOGIC ---
+        function updateIgpuText(mode) {
+            let isIgpu = document.getElementById(mode + '_is_igpu').value === 'true';
+            if(!isIgpu) return;
+            
+            let cpuText = document.getElementById(mode + '_processor').value.toLowerCase();
+            let gpuInput = document.getElementById(mode + '_graphics');
+            
+            if(cpuText.includes('amd') || cpuText.includes('ryzen')) gpuInput.value = "AMD Radeon Graphics";
+            else if(cpuText.includes('intel') || cpuText.includes('core') || cpuText.includes('pentium')) gpuInput.value = "Intel HD Graphics";
+            else gpuInput.value = "Integrated Graphics";
+        }
+
+        function toggleGpuType(mode, type) {
+            let isIgpuField = document.getElementById(mode + '_is_igpu');
+            let snInput = document.getElementById(mode + '_graphics_sn');
+            let browseBtn = document.getElementById(mode + '_btn_gpu_browse');
+            let graphicsInput = document.getElementById(mode + '_graphics');
+            let gpuFooter = document.getElementById(mode + '_gpu_footer');
+            
+            if (type === 'integrated') {
+                isIgpuField.value = 'true';
+                snInput.style.display = 'none';
+                browseBtn.style.display = 'none';
+                graphicsInput.readOnly = true; 
+                graphicsInput.style.backgroundColor = '#f1f2f6';
+                if(gpuFooter) gpuFooter.style.display = 'none'; 
+                updateIgpuText(mode);
+            } else {
+                isIgpuField.value = 'false';
+                snInput.style.display = 'block';
+                browseBtn.style.display = 'flex';
+                graphicsInput.readOnly = false;
+                graphicsInput.style.backgroundColor = '#fdfdfd';
+                if(gpuFooter) gpuFooter.style.display = 'flex';
+                graphicsInput.value = '';
+            }
+        }
+
+        // --- MODAL TRIGGERS ---
+        function openAddModal() { 
+            for(let i=2; i<=4; i++) {
+                document.getElementById(`add_ram_${i}_group`).style.display = 'none';
+                document.getElementById(`add_storage_${i}_group`).style.display = 'none';
+            }
+            document.getElementById('gpu_add_ded').checked = true;
+            toggleGpuType('add', 'dedicated');
+            document.getElementById('addPCModal').classList.add('show'); 
+        }
+        function closeAddModal() { document.getElementById('addPCModal').classList.remove('show'); }
+        function openAddRoomModal() { document.getElementById('addRoomModal').classList.add('show'); }
+        function closeAddRoomModal() { document.getElementById('addRoomModal').classList.remove('show'); }
+        function openDefectiveListModal() { document.getElementById('defectiveListModal').classList.add('show'); }
+        function closeDefectiveListModal() { document.getElementById('defectiveListModal').classList.remove('show'); }
+        function openMissingListModal() { document.getElementById('missingListModal').classList.add('show'); }
+        function closeMissingListModal() { document.getElementById('missingListModal').classList.remove('show'); }
+
+        function openUpdateModal(btn) {
+            const d = btn.dataset;
+            document.getElementById('upd_custom_id').value = d.customId;
+            document.getElementById('upd_room').value = d.room;
+            document.getElementById('upd_status').value = d.status;
+            
+            document.getElementById('upd_processor').value = d.processor;
+            document.getElementById('upd_ram').value = d.ram;
+            document.getElementById('upd_ram_2').value = d.ram2 || '';
+            document.getElementById('upd_ram_3').value = d.ram3 || '';
+            document.getElementById('upd_ram_4').value = d.ram4 || '';
+            document.getElementById('upd_storage').value = d.storage;
+            document.getElementById('upd_storage_2').value = d.storage2 || '';
+            document.getElementById('upd_storage_3').value = d.storage3 || '';
+            document.getElementById('upd_storage_4').value = d.storage4 || '';
+            
+            document.getElementById('upd_graphics').value = d.graphics;
+            document.getElementById('upd_motherboard').value = d.motherboard || '';
+            document.getElementById('upd_psu').value = d.psu || '';
+            
+            document.getElementById('upd_monitor_details').value = d.monitorDetails || '';
+            document.getElementById('upd_avr_details').value = d.avrDetails || '';
+            document.getElementById('upd_keyboard_details').value = d.keyboardDetails || '';
+            document.getElementById('upd_mouse_details').value = d.mouseDetails || '';
+            
+            document.getElementById('upd_processor_sn').value = d.processorSn || '';
+            document.getElementById('upd_ram_sn').value = d.ramSn || '';
+            document.getElementById('upd_ram_2_sn').value = d.ram2sn || '';
+            document.getElementById('upd_ram_3_sn').value = d.ram3sn || '';
+            document.getElementById('upd_ram_4_sn').value = d.ram4sn || '';
+            document.getElementById('upd_storage_sn').value = d.storageSn || '';
+            document.getElementById('upd_storage_2_sn').value = d.storage2sn || '';
+            document.getElementById('upd_storage_3_sn').value = d.storage3sn || '';
+            document.getElementById('upd_storage_4_sn').value = d.storage4sn || '';
+            
+            document.getElementById('upd_graphics_sn').value = d.graphicsSn || '';
+            document.getElementById('upd_motherboard_sn').value = d.motherboardSn || '';
+            document.getElementById('upd_psu_sn').value = d.psuSn || '';
+            
+            document.getElementById('upd_monitor_sn').value = d.monitorSn || '';
+            document.getElementById('upd_avr_sn').value = d.avrSn || '';
+            document.getElementById('upd_keyboard_sn').value = d.keyboardSn || '';
+            document.getElementById('upd_mouse_sn').value = d.mouseSn || '';
+            
+            for(let i=2; i<=4; i++) {
+                document.getElementById(`upd_ram_${i}_group`).style.display = document.getElementById(`upd_ram_${i}`).value ? 'flex' : 'none';
+                document.getElementById(`upd_storage_${i}_group`).style.display = document.getElementById(`upd_storage_${i}`).value ? 'flex' : 'none';
+            }
+            
+            if(d.isigpu === 'true') {
+                document.getElementById('gpu_upd_int').checked = true;
+                toggleGpuType('upd', 'integrated');
+            } else {
+                document.getElementById('gpu_upd_ded').checked = true;
+                toggleGpuType('upd', 'dedicated');
+                document.getElementById('upd_graphics').value = d.graphics; 
+            }
+            
+            document.getElementById('upd_remarks').value = d.remarks || '';
+            document.getElementById('upd_vga').checked = (d.vga === 'true');
+            document.getElementById('upd_hdmi').checked = (d.hdmi === 'true');
+            
+            const allActionSelects = document.querySelectorAll('.action-select-inline');
+            allActionSelects.forEach(select => select.value = 'Working');
+            
+            toggleUpdateRemarks();
+            document.getElementById('updateForm').action = "/update-pc/" + d.id + "/";
+            document.getElementById('updatePCModal').classList.add('show');
+        }
+        function closeUpdateModal() { document.getElementById('updatePCModal').classList.remove('show'); }
+
+        function openDeletePCModal(id, name) {
+            document.getElementById('delete_pc_label').innerText = name;
+            document.getElementById('confirmDeletePCBtn').href = "/delete_pc/" + id + "/";
+            document.getElementById('deletePCModal').classList.add('show');
+        }
+        function closeDeletePCModal() { document.getElementById('deletePCModal').classList.remove('show'); }
+
+        function openEditRoomModal(id, name) {
+            document.getElementById('edit_room_name').value = name;
+            document.getElementById('editRoomForm').action = "/edit-room/" + id + "/";
+            document.getElementById('editRoomModal').classList.add('show');
+        }
+        function closeEditRoomModal() { document.getElementById('editRoomModal').classList.remove('show'); }
+
+        function openDeleteRoomModal(id, name) {
+            document.getElementById('delete_room_label').innerText = name;
+            document.getElementById('confirmDeleteRoomBtn').href = "/delete-room/" + id + "/";
+            document.getElementById('deleteRoomModal').classList.add('show');
+        }
+        function closeDeleteRoomModal() { document.getElementById('deleteRoomModal').classList.remove('show'); }
+
+        function openRoomModal(roomId) {
+            const data = document.getElementById('room-data-' + roomId);
+            if (data) {
+                document.getElementById('modal-body-content').innerHTML = data.innerHTML;
+                document.getElementById('roomModal').classList.add('show');
+                const table = document.querySelector('#modal-body-content .pc-table tbody');
+                if(table) {
+                    const rows = Array.from(table.querySelectorAll('tr'));
+                    rows.sort((a, b) => a.cells[0].innerText.trim().localeCompare(b.cells[0].innerText.trim(), undefined, { numeric: true }));
+                    rows.forEach(row => table.appendChild(row));
+                }
+            }
+        }
+        function closeRoomModal() { document.getElementById('roomModal').classList.remove('show'); }
+
+        window.onclick = e => {
+            if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('show');
+        }
+    </script>
+</body>
+</html>

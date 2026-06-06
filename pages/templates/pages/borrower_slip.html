@@ -1,0 +1,195 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Borrower's Slip</title>
+    <style>
+        /* Base Styles & Box Sizing */
+        * { box-sizing: border-box; }
+        body { font-family: "Calibri", Arial, sans-serif; font-size: 10px; margin: 0; padding: 0; color: #000; background: #eee; }
+        
+        /* Container sizes perfectly to a standard Letter/A4 width */
+        .page-container { width: 8.5in; margin: 10px auto; padding: 15px 30px; background: white; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
+        
+        .slip-wrapper { padding: 0; position: relative; margin-bottom: 5px; }
+        
+        /* --- HEADER: LOGO + OVERLAPPING TEXT --- */
+        .header-section { 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            margin-bottom: 5px;
+        }
+        
+        /* Logo Size */
+        .header-section img.logo { 
+            height: 60px; 
+            width: auto; 
+            object-fit: contain; 
+            position: relative;
+            z-index: 1; 
+        }
+        
+        /* Address Text Styling (Overlaps the logo) */
+        .school-address { 
+            font-size: 9px; 
+            font-weight: normal; 
+            text-align: center;
+            margin-top: -10px; /* <--- Adjust this to pull text up or down */
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Sub-header text (Reminders & Form Code) */
+        .sub-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px; }
+        .reminders { font-weight: bold; font-size: 9px; }
+        .form-code { font-size: 9px; font-weight: bold; }
+        .title { font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 10px; }
+
+        /* Exact Excel Info Grid */
+        .info-grid { display: grid; grid-template-columns: 20% 30% 15% 35%; gap: 4px 10px; margin-bottom: 10px; }
+        .info-label { font-weight: bold; font-size: 9px; align-self: end; }
+        .info-value { border-bottom: 1px solid #000; padding-bottom: 1px; font-size: 10px; font-weight: bold; min-height: 14px; }
+
+        /* Items Table */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        th, td { border: 1px solid #000; padding: 4px; text-align: center; font-size: 9px; }
+        th { font-weight: bold; background: #fff; }
+        
+        /* Match Excel Columns */
+        th:nth-child(1) { width: 12%; } /* Qty */
+        th:nth-child(2) { width: 30%; } /* Description */
+        th:nth-child(3) { width: 15%; } /* Serial */
+        th:nth-child(4) { width: 10%; } /* Remarks */
+        th:nth-child(5) { width: 18%; } /* Purpose */
+        th:nth-child(6) { width: 15%; } /* Return Date */
+        .empty-row td { height: 16px; }
+
+        /* Signatures (Matched to Excel layout) */
+        .signatures { display: flex; justify-content: space-between; margin-top: 15px; margin-bottom: 10px; padding: 0 10px; }
+        .sig-box { width: 35%; text-align: center; display: flex; flex-direction: column; justify-content: flex-end; }
+        .sig-name { font-weight: bold; text-transform: uppercase; font-size: 11px; margin-bottom: 2px; height: 14px; }
+        .sig-line { border-top: 1px solid #000; padding-top: 3px; font-size: 9px; }
+
+        /* Terms & Footer */
+        .terms { font-size: 7.5px; text-align: justify; line-height: 1.1; margin-bottom: 5px; }
+        .ack { font-size: 8px; font-style: italic; font-weight: bold; text-align: justify; margin-bottom: 5px; }
+        .proverb { font-size: 8px; font-style: italic; font-weight: bold; text-align: center; margin-bottom: 5px; }
+
+        /* Cut Line */
+        .cut-line { border-top: 1px dashed #666; margin: 20px 0; position: relative; }
+        .cut-line::after { content: "✂ Cut Here"; position: absolute; top: -6px; left: 0px; background: white; padding-right: 10px; font-size: 9px; color: #555; }
+
+        /* --- THE MAGIC 1-PAGE PRINT SETTINGS --- */
+        @media print {
+            body { background: white; }
+            .page-container { width: 100%; margin: 0; padding: 0; box-shadow: none; border: none; }
+            .cut-line::after { display: none; } /* Hide scissors icon when actually printing */
+            @page { 
+                size: portrait; 
+                margin: 0.3in; /* Very tight margin forces it onto 1 page */
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-container">
+    
+    {% for copy in "12" %}
+    <div class="slip-wrapper">
+        
+        <div class="header-section">
+            <img class="logo" src="{% static 'images/school_logo.png' %}" alt="School Logo">
+            <div class="school-address">Kalayaan - Green Meadows - Trinity - HCIT <br>Tel. (082) 222-1466</div>
+        </div>
+        
+        <div class="sub-header">
+            <div class="reminders">REMINDERS: PRESENT SCHOOL ID WHEN BORROWING</div>
+            <div class="form-code">HCCD-GSO-FORM009s2023</div>
+        </div>
+
+        <div class="title">BORROWER'S SLIP</div>
+
+        <div class="info-grid">
+            <div class="info-label">Borrower's Name</div><div class="info-value">{{ borrower_name }}</div>
+            <div class="info-label">Date</div><div class="info-value">{{ date }}</div>
+            
+            <div class="info-label">Department/Position</div><div class="info-value">{{ position }}</div>
+            <div class="info-label">Contact Number</div><div class="info-value">{{ contact }}</div>
+            
+            <div class="info-label">(For Students) Grade & Section</div><div class="info-value"></div>
+            <div class="info-label">Branch</div><div class="info-value">{{ branch }}</div>
+            
+            <div class="info-label"></div><div class="info-value"></div>
+            <div class="info-label">E-mail</div><div class="info-value">{{ email }}</div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Item's/Equipment</th>
+                    <th>Description</th>
+                    <th>Equipment ID/Serial Number</th>
+                    <th>Remarks</th>
+                    <th>Purpose</th>
+                    <th>Expected Return Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.qty }}</td>
+                    <td style="text-align: left;">{{ item.desc }}</td>
+                    <td>{{ item.serial }}</td>
+                    <td></td> <td>{{ item.purpose }}</td>
+                    <td>{{ item.date }}</td>
+                </tr>
+                {% endfor %}
+                
+                {% for i in empty_rows %}
+                <tr class="empty-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="signatures">
+            <div class="sig-box">
+                <div class="sig-name">{{ borrower_name }}</div>
+                <div class="sig-line">Borrower's Signature / Date</div>
+            </div>
+            <div class="sig-box">
+                <div class="sig-name">JIBB ESCORO DAWANG</div>
+                <div class="sig-line">Staff/Authorized Personnel / Date</div>
+            </div>
+        </div>
+
+        <div class="terms">
+            <b>Terms and Conditions:</b> 1.) The borrower agrees to take full responsibility for the borrowed equipment and ensure its safekeeping during the borrowing period. 2.) The borrower understands that any damage, loss, or theft of the equipment will be their responsibility and may result in appropriate actions or charges. 3.) The borrower agrees to use the equipment only for the specified purpose and in accordance with the organization's policies and procedures. 4.) The borrower will return the equipment in the same condition as it was received, normal wear and tear excepted, by the agreed return date. 5.) The borrower will inform the organization promptly of any issues or concerns regarding the equipment during the borrowing period. The organization reserves the right to inspect the equipment upon return to verify its condition. 6.) Failure to return the equipment by the agreed return date may result in penalties, including but not limited to suspension of borrowing privileges and possible charges for equipment replacement or repair.
+        </div>
+        
+        <div class="ack">
+            I acknowledge that I have read and understood the terms and conditions stated above. I agree to comply with the responsibilities outlined and will return the equipment in the agreed-upon condition and by the specified return date.
+        </div>
+        
+        <div class="proverb">
+            "Proverbs 22:6 - Train up a child in the way he should go, and when he is old he will not depart from it."
+        </div>
+
+    </div>
+
+    {% if forloop.first %}
+        <div class="cut-line"></div>
+    {% endif %}
+    {% endfor %}
+
+</div>
+
+<script>
+    window.onload = function() { window.print(); }
+</script>
+
+</body>
+</html>
